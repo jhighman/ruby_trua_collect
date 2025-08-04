@@ -1,0 +1,122 @@
+<%= render layout: 'form_submissions/form', locals: { step_title: 'Signature' } do |form| %>
+  <div class="mb-4">
+    <p>Please review all information provided and sign below to confirm its accuracy.</p>
+    
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Signature</h5>
+      </div>
+      <div class="card-body">
+        <% if @requirements.signature_mode == 'standard' %>
+          <div class="mb-3">
+            <%= form.label :signature, 'Type your full legal name as your signature', class: 'form-label' %>
+            <%= form.text_field :signature, 
+                               class: 'form-control', 
+                               required: true,
+                               value: @form_submission.step_values(@step_id)['signature'],
+                               data: { form_target: 'field' } %>
+          </div>
+        <% elsif @requirements.signature_mode == 'electronic' %>
+          <div class="mb-3">
+            <label class="form-label">Draw your signature below</label>
+            <div class="border rounded p-3 mb-2" style="height: 150px;">
+              <canvas id="signature-pad" width="100%" height="100%"></canvas>
+            </div>
+            <%= form.hidden_field :signature, 
+                                 id: 'signature-data',
+                                 value: @form_submission.step_values(@step_id)['signature'],
+                                 data: { form_target: 'field' } %>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-signature">Clear</button>
+          </div>
+          
+          <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              const canvas = document.getElementById('signature-pad');
+              const signatureData = document.getElementById('signature-data');
+              const clearButton = document.getElementById('clear-signature');
+              const ctx = canvas.getContext('2d');
+              
+              // Set canvas dimensions
+              canvas.width = canvas.offsetWidth;
+              canvas.height = canvas.offsetHeight;
+              
+              let isDrawing = false;
+              
+              // Load existing signature if available
+              if (signatureData.value) {
+                const img = new Image();
+                img.onload = function() {
+                  ctx.drawImage(img, 0, 0);
+                };
+                img.src = signatureData.value;
+              }
+              
+              // Drawing event handlers
+              canvas.addEventListener('mousedown', startDrawing);
+              canvas.addEventListener('mousemove', draw);
+              canvas.addEventListener('mouseup', stopDrawing);
+              canvas.addEventListener('mouseout', stopDrawing);
+              
+              // Touch support
+              canvas.addEventListener('touchstart', startDrawing);
+              canvas.addEventListener('touchmove', draw);
+              canvas.addEventListener('touchend', stopDrawing);
+              
+              clearButton.addEventListener('click', clearSignature);
+              
+              function startDrawing(e) {
+                isDrawing = true;
+                draw(e);
+              }
+              
+              function draw(e) {
+                if (!isDrawing) return;
+                
+                e.preventDefault();
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#000';
+                
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                
+                // Save signature data
+                signatureData.value = canvas.toDataURL();
+              }
+              
+              function stopDrawing() {
+                isDrawing = false;
+                ctx.beginPath();
+              }
+              
+              function clearSignature() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                signatureData.value = '';
+              }
+            });
+          </script>
+        <% end %>
+        
+        <div class="form-check">
+          <%= form.check_box :confirmation, 
+                            class: 'form-check-input', 
+                            required: true,
+                            checked: @form_submission.step_values(@step_id)['confirmation'],
+                            data: { form_target: 'field' } %>
+          <%= form.label :confirmation, 'I confirm that all information provided is accurate and complete to the best of my knowledge.', class: 'form-check-label' %>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div data-form-target="navigation" class="d-flex justify-content-between mt-4">
+    <!-- Navigation buttons will be dynamically rendered here by the FormController -->
+  </div>
+<% end %>

@@ -1,0 +1,68 @@
+<%= render layout: 'form_submissions/form', locals: { step_title: 'Required Consents' } do |form| %>
+  <div class="mb-4">
+    <p>Please review and provide consent for the following items as required:</p>
+    
+    <% if @requirements.consents_required?('driver_license') %>
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Driver's License Verification Consent</h5>
+          <p class="card-text">I consent to the verification of my driver's license information as part of this application process.</p>
+          <div class="form-check">
+            <%= form.check_box :driver_license_consent, 
+                              class: 'form-check-input', 
+                              required: true,
+                              checked: @form_submission.step_values(@step_id)['driver_license_consent'],
+                              data: { form_target: 'field' } %>
+            <%= form.label :driver_license_consent, 'I consent', class: 'form-check-label' %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    
+    <% if @requirements.consents_required?('drug_test') %>
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Drug Test Consent</h5>
+          <p class="card-text">I consent to undergo drug testing as part of this application process.</p>
+          <div class="form-check">
+            <%= form.check_box :drug_test_consent, 
+                              class: 'form-check-input', 
+                              required: true,
+                              checked: @form_submission.step_values(@step_id)['drug_test_consent'],
+                              data: { form_target: 'field' } %>
+            <%= form.label :drug_test_consent, 'I consent', class: 'form-check-label' %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    
+    <% if @requirements.consents_required?('biometric') %>
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Biometric Data Consent</h5>
+          <p class="card-text">I consent to the collection and processing of my biometric data as part of this application process.</p>
+          <div class="form-check">
+            <%= form.check_box :biometric_consent, 
+                              class: 'form-check-input', 
+                              required: true,
+                              checked: @form_submission.step_values(@step_id)['biometric_consent'],
+                              data: { form_target: 'field' } %>
+            <%= form.label :biometric_consent, 'I consent', class: 'form-check-label' %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    
+    <% if !@requirements.consents_required?('driver_license') && 
+          !@requirements.consents_required?('drug_test') && 
+          !@requirements.consents_required?('biometric') %>
+      <div class="alert alert-info">
+        No consents are required for this application.
+      </div>
+    <% end %>
+  </div>
+  
+  <div data-form-target="navigation" class="d-flex justify-content-between mt-4">
+    <!-- Navigation buttons will be dynamically rendered here by the FormController -->
+  </div>
+<% end %>

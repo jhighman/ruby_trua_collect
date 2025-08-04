@@ -1,0 +1,29 @@
+<% content_for :layout do %>
+  <%= render template: 'layouts/form_submission' %>
+<% end %>
+
+<%= render layout: 'form_submissions/form', locals: { step_title: 'Personal Information' } do |form| %>
+  <div class="mb-3">
+    <%= form.label :name, 'Full Name', class: 'form-label' %>
+    <%= form.text_field :name, value: @form_submission.step_values(@step_id)['name'], class: 'form-control', required: true, data: { form_target: 'field' } %>
+    <div class="invalid-feedback">
+      Please provide your full name.
+    </div>
+  </div>
+  
+  <div class="mb-3">
+    <%= form.label :email, 'Email Address', class: 'form-label' %>
+    <%= form.email_field :email, value: @form_submission.step_values(@step_id)['email'], class: 'form-control', required: true, data: { form_target: 'field' } %>
+    <div class="invalid-feedback">
+      Please provide a valid email address.
+    </div>
+  </div>
+  
+  <div data-form-target="navigation" class="d-flex justify-content-between mt-4">
+    <!-- Navigation buttons will be dynamically rendered here by the FormController -->
+  </div>
+  
+  <div class="d-flex justify-content-end mt-4">
+    <%= form.submit 'Next', name: 'commit', value: 'Next', class: 'btn btn-primary' %>
+  </div>
+<% end %>

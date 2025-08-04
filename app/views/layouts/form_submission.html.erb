@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Multi-Step Form</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <div class="container mt-4">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0">Form Progress</h5>
+            </div>
+            <div class="card-body p-0">
+              <ul class="list-group list-group-flush">
+                <% FormConfig.step_ids.each do |step_id| %>
+                  <li class="list-group-item <%= @step_id == step_id ? 'active' : '' %> <%= @form_submission.step_complete?(step_id) ? 'list-group-item-success' : '' %>">
+                    <% if @form_submission.step_complete?(step_id) || @navigation_state[:completed_steps].include?(step_id) %>
+                      <i class="bi bi-check-circle-fill me-2"></i>
+                    <% end %>
+                    <%= step_id.humanize %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-9">
+          <%= yield %>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

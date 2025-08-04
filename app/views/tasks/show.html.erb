@@ -1,0 +1,24 @@
+<h1 class="text-3xl font-bold mb-6"><%= @task.title %></h1>
+
+<div class="bg-white shadow-md rounded-lg p-6 mb-6">
+  <div class="mb-4">
+    <p class="mb-2"><span class="font-semibold"><%= t('tasks.show.description') %>:</span> <%= @task.description %></p>
+    <p class="mb-2">
+      <span class="font-semibold"><%= t('tasks.show.status') %>:</span>
+      <% if @task.complete? %>
+        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded"><%= t('tasks.index.status.completed') %></span>
+      <% else %>
+        <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded"><%= t('tasks.index.status.pending') %></span>
+      <% end %>
+    </p>
+    <p class="mb-2"><span class="font-semibold"><%= t('tasks.show.created_at') %>:</span> <%= @task.created_at.strftime("%B %d, %Y") %></p>
+    
+    <% if @task.completed_at.present? %>
+      <p class="mb-2"><span class="font-semibold"><%= t('tasks.show.completed_at') %>:</span> <%= @task.completed_at.strftime("%B %d, %Y") %></p>
+    <% end %>
+  </div>
+</div>
+
+<div class="mt-6">
+  <%= link_to t('tasks.show.back_to_tasks'), tasks_path, class: "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded" %>
+</div>

@@ -1,0 +1,40 @@
+<h1 class="text-3xl font-bold mb-6"><%= t('tasks.index.title') %></h1>
+
+<div class="mb-6">
+  <%= link_to t('tasks.index.new_task'), new_task_path, class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" %>
+</div>
+
+<% if @tasks.any? %>
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white border border-gray-200">
+      <thead>
+        <tr class="bg-gray-100">
+          <th class="py-2 px-4 border-b text-left"><%= t('tasks.index.table.title') %></th>
+          <th class="py-2 px-4 border-b text-left"><%= t('tasks.index.table.description') %></th>
+          <th class="py-2 px-4 border-b text-left"><%= t('tasks.index.table.status') %></th>
+          <th class="py-2 px-4 border-b text-left"><%= t('tasks.index.table.actions') %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @tasks.each do |task| %>
+          <tr class="hover:bg-gray-50">
+            <td class="py-2 px-4 border-b"><%= task.title %></td>
+            <td class="py-2 px-4 border-b"><%= task.description %></td>
+            <td class="py-2 px-4 border-b">
+              <% if task.complete? %>
+                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded"><%= t('tasks.index.status.completed') %></span>
+              <% else %>
+                <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded"><%= t('tasks.index.status.pending') %></span>
+              <% end %>
+            </td>
+            <td class="py-2 px-4 border-b">
+              <%= link_to t('tasks.index.actions.view'), task_path(task), class: "bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-1 px-2 rounded" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="text-gray-500 italic"><%= t('tasks.index.no_tasks') %></p>
+<% end %>

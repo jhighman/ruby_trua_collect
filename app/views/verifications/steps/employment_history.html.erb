@@ -1,0 +1,424 @@
+<% content_for :layout do %>
+  <%= render template: 'layouts/verification' %>
+<% end %>
+
+<div class="card mb-4">
+  <div class="card-header">
+    <h2 class="h5 mb-0">Employment History</h2>
+  </div>
+  <div class="card-body">
+    <% if @employment_mode == 'years' %>
+      <p class="text-muted mb-4">Please provide your employment history for the past <%= @required_years %> years. You must account for the entire period with no gaps.</p>
+      
+      <div class="timeline-visualization">
+        <h6>Timeline Coverage</h6>
+        <p class="text-muted">Required: <%= @required_years %> years | Provided: <%= @employment_history.total_years.round(1) %> years</p>
+        
+        <div class="timeline-bar">
+          <% 
+            # Calculate the percentage of required years covered
+            coverage_percent = [(@employment_history.total_years / @required_years) * 100, 100].min
+          %>
+          <div class="timeline-segment" style="width: <%= coverage_percent %>%;"></div>
+        </div>
+        
+        <div class="timeline-labels">
+          <span>Today - <%= @required_years %> years</span>
+          <span>Today</span>
+        </div>
+      </div>
+    <% else %>
+      <p class="text-muted mb-4">Please provide information for at least <%= @required_employers %> employers.</p>
+      
+      <div class="timeline-visualization">
+        <h6>Employer Count</h6>
+        <p class="text-muted">Required: <%= @required_employers %> employers | Provided: <%= @employment_entries.count %> employers</p>
+        
+        <div class="timeline-bar">
+          <% 
+            # Calculate the percentage of required employers covered
+            coverage_percent = [(@employment_entries.count.to_f / @required_employers) * 100, 100].min
+          %>
+          <div class="timeline-segment" style="width: <%= coverage_percent %>%;"></div>
+        </div>
+        
+        <div class="timeline-labels">
+          <span>0</span>
+          <span><%= @required_employers %></span>
+        </div>
+      </div>
+    <% end %>
+    
+    <% if @employment_entries.any? %>
+      <h6 class="mb-3">Your Employment History</h6>
+      <div class="table-responsive mb-4">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Company/Organization</th>
+              <th>Position</th>
+              <th>Location</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Duration</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @employment_entries.each do |entry| %>
+              <tr>
+                <td><%= entry.type || 'Job' %></td>
+                <td><%= entry.company %></td>
+                <td><%= entry.position %></td>
+                <td><%= "#{entry.city}, #{entry.state_province}, #{entry.country}" %></td>
+                <td><%= entry.start_date&.strftime('%Y-%m-%d') %></td>
+                <td><%= entry.is_current ? 'Current' : entry.end_date&.strftime('%Y-%m-%d') %></td>
+                <td><%= entry.duration_years.round(1) %> years</td>
+                <td>
+                  <%= link_to '#', class: 'btn btn-sm btn-outline-danger', data: { bs_toggle: 'modal', bs_target: "#deleteModal#{entry.id}" } do %>
+                    <i class="bi bi-trash"></i>
+                  <% end %>
+                  
+                  <!-- Delete Modal -->
+                  <div class="modal fade" id="deleteModal<%= entry.id %>" tabindex="-1" aria-labelledby="deleteModalLabel<%= entry.id %>" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="deleteModalLabel<%= entry.id %>">Confirm Deletion</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                          Are you sure you want to delete this employment entry?
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                          <%= link_to 'Delete', '#', class: 'btn btn-danger' %>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+    
+    <button class="btn btn-outline-primary mb-4" type="button" data-bs-toggle="collapse" data-bs-target="#addEmploymentForm" aria-expanded="false" aria-controls="addEmploymentForm">
+      <i class="bi bi-plus-circle"></i> Add Employment Entry
+    </button>
+    
+    <div class="collapse <%= 'show' if @employment_entries.empty? %>" id="addEmploymentForm">
+      <div class="card">
+        <div class="card-header bg-light">
+          <h3 class="h6 mb-0">Add Employment Entry</h3>
+        </div>
+        <div class="card-body">
+          <%= form_with model: EmploymentEntry.new, url: update_step_verification_path(@claim.tracking_id, step: 'employment_history'), method: :post, class: 'needs-validation', novalidate: true do |f| %>
+            <div class="mb-3">
+              <%= f.label :type, 'Entry Type *', class: 'form-label' %>
+              <%= f.select :type, [['Job', 'Job'], ['Education', 'Education'], ['Unemployed', 'Unemployed'], ['Other', 'Other']], { include_blank: 'Select type' }, { class: 'form-select', required: true, id: 'employment_type_select' } %>
+              <div class="invalid-feedback">
+                Please select an entry type.
+              </div>
+            </div>
+            
+            <div id="job_fields">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <%= f.label :company, 'Company/Organization *', class: 'form-label' %>
+                  <%= f.text_field :company, class: 'form-control', required: true %>
+                  <div class="invalid-feedback">
+                    Please provide a company or organization name.
+                  </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <%= f.label :position, 'Position/Title *', class: 'form-label' %>
+                  <%= f.text_field :position, class: 'form-control', required: true %>
+                  <div class="invalid-feedback">
+                    Please provide a position or title.
+                  </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <%= f.label :city, 'City *', class: 'form-label' %>
+                  <%= f.text_field :city, class: 'form-control', required: true %>
+                  <div class="invalid-feedback">
+                    Please provide a city.
+                  </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <%= f.label :state_province, 'State/Province *', class: 'form-label' %>
+                  <%= f.text_field :state_province, class: 'form-control', required: true %>
+                  <div class="invalid-feedback">
+                    Please provide a state or province.
+                  </div>
+                </div>
+                
+                <div class="col-md-4 mb-3">
+                  <%= f.label :country, 'Country *', class: 'form-label' %>
+                  <%= f.text_field :country, class: 'form-control', required: true %>
+                  <div class="invalid-feedback">
+                    Please provide a country.
+                  </div>
+                </div>
+                
+                <div class="col-md-12 mb-3">
+                  <%= f.label :description, 'Description', class: 'form-label' %>
+                  <%= f.text_area :description, class: 'form-control', rows: 2 %>
+                </div>
+              </div>
+              
+              <div class="card mb-3">
+                <div class="card-header bg-light">
+                  <h4 class="h6 mb-0">Contact Information for Verification</h4>
+                </div>
+                <div class="card-body">
+                  <div class="form-check mb-3">
+                    <%= f.check_box :no_contact_attestation, class: 'form-check-input', id: 'no_contact_attestation' %>
+                    <%= f.label :no_contact_attestation, 'This employer cannot be contacted for verification', class: 'form-check-label' %>
+                  </div>
+                  
+                  <div id="contact_fields">
+                    <div class="row">
+                      <div class="col-md-6 mb-3">
+                        <%= f.label :contact_name, 'Contact Name *', class: 'form-label' %>
+                        <%= f.text_field :contact_name, class: 'form-control', required: true %>
+                        <div class="invalid-feedback">
+                          Please provide a contact name.
+                        </div>
+                      </div>
+                      
+                      <div class="col-md-6 mb-3">
+                        <%= f.label :contact_type, 'Contact Type *', class: 'form-label' %>
+                        <%= f.select :contact_type, [['Manager', 'Manager'], ['HR', 'HR'], ['Colleague', 'Colleague'], ['Other', 'Other']], { include_blank: 'Select type' }, { class: 'form-select', required: true } %>
+                        <div class="invalid-feedback">
+                          Please select a contact type.
+                        </div>
+                      </div>
+                      
+                      <div class="col-md-6 mb-3">
+                        <%= f.label :contact_email, 'Contact Email', class: 'form-label' %>
+                        <%= f.email_field :contact_email, class: 'form-control' %>
+                        <div class="invalid-feedback">
+                          Please provide a valid email address.
+                        </div>
+                      </div>
+                      
+                      <div class="col-md-6 mb-3">
+                        <%= f.label :contact_phone, 'Contact Phone', class: 'form-label' %>
+                        <%= f.telephone_field :contact_phone, class: 'form-control' %>
+                        <div class="invalid-feedback">
+                          Please provide a valid phone number.
+                        </div>
+                      </div>
+                      
+                      <div class="col-md-12 mb-3">
+                        <%= f.label :contact_preferred_method, 'Preferred Contact Method *', class: 'form-label' %>
+                        <%= f.select :contact_preferred_method, [['Email', 'Email'], ['Phone', 'Phone']], { include_blank: 'Select method' }, { class: 'form-select', required: true } %>
+                        <div class="invalid-feedback">
+                          Please select a preferred contact method.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div id="no_contact_explanation" style="display: none;">
+                    <div class="mb-3">
+                      <%= f.label :contact_explanation, 'Explanation *', class: 'form-label' %>
+                      <%= f.text_area :contact_explanation, class: 'form-control', rows: 3, required: true %>
+                      <div class="invalid-feedback">
+                        Please provide an explanation.
+                      </div>
+                      <div class="form-text">
+                        Please explain why this employer cannot be contacted for verification.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <%= f.label :start_date, 'Start Date *', class: 'form-label' %>
+                <%= f.date_field :start_date, class: 'form-control', required: true %>
+                <div class="invalid-feedback">
+                  Please provide a start date.
+                </div>
+              </div>
+              
+              <div class="col-md-6 mb-3">
+                <%= f.label :end_date, 'End Date', class: 'form-label' %>
+                <%= f.date_field :end_date, class: 'form-control', disabled: false %>
+                <div class="invalid-feedback">
+                  Please provide an end date.
+                </div>
+              </div>
+              
+              <div class="col-md-12 mb-3">
+                <div class="form-check">
+                  <%= f.check_box :is_current, class: 'form-check-input', id: 'is_current_employment' %>
+                  <%= f.label :is_current, 'This is my current status', class: 'form-check-label' %>
+                </div>
+              </div>
+            </div>
+            
+            <div class="d-flex justify-content-end">
+              <button type="button" class="btn btn-outline-secondary me-2" data-bs-toggle="collapse" data-bs-target="#addEmploymentForm">
+                Cancel
+              </button>
+              <%= f.submit 'Save Entry', class: 'btn btn-primary' %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    
+    <%= form_with url: update_step_verification_path(@claim.tracking_id, step: 'employment_history'), method: :post do |f| %>
+      <%= f.hidden_field :complete_step, value: 'true' %>
+      
+      <div class="d-flex justify-content-between mt-4">
+        <% 
+          previous_step = if @claim.requirements.verification_step_enabled?('residence_history')
+            'residence_history'
+          elsif @claim.requirements.consents_required?('driver_license') || 
+                @claim.requirements.consents_required?('drug_test') || 
+                @claim.requirements.consents_required?('biometric')
+            'consents'
+          else
+            'personal_info'
+          end
+        %>
+        <%= link_to 'Back', step_verification_path(@claim.tracking_id, step: previous_step), class: 'btn btn-outline-secondary' %>
+        
+        <% if (@employment_mode == 'years' && @employment_history.total_years >= @required_years) || 
+              (@employment_mode == 'employers' && @employment_entries.count >= @required_employers) %>
+          <%= f.submit 'Next', class: 'btn btn-primary' %>
+        <% else %>
+          <% if @employment_mode == 'years' %>
+            <button type="button" class="btn btn-primary" disabled>
+              Next (Need <%= (@required_years - @employment_history.total_years).round(1) %> more years)
+            </button>
+          <% else %>
+            <button type="button" class="btn btn-primary" disabled>
+              Next (Need <%= @required_employers - @employment_entries.count %> more employers)
+            </button>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  // Form validation
+  document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('.needs-validation');
+    
+    Array.from(forms).forEach(form => {
+      form.addEventListener('submit', event => {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        
+        form.classList.add('was-validated');
+      }, false);
+    });
+    
+    // Handle current employment checkbox
+    const currentEmploymentCheckbox = document.getElementById('is_current_employment');
+    const endDateField = document.querySelector('input[name="employment_entry[end_date]"]');
+    
+    if (currentEmploymentCheckbox && endDateField) {
+      currentEmploymentCheckbox.addEventListener('change', function() {
+        endDateField.disabled = this.checked;
+        if (this.checked) {
+          endDateField.value = '';
+          endDateField.removeAttribute('required');
+        } else {
+          endDateField.setAttribute('required', 'required');
+        }
+      });
+    }
+    
+    // Handle no contact attestation
+    const noContactCheckbox = document.getElementById('no_contact_attestation');
+    const contactFields = document.getElementById('contact_fields');
+    const noContactExplanation = document.getElementById('no_contact_explanation');
+    
+    if (noContactCheckbox && contactFields && noContactExplanation) {
+      noContactCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+          contactFields.style.display = 'none';
+          noContactExplanation.style.display = 'block';
+          
+          // Remove required attribute from contact fields
+          const requiredFields = contactFields.querySelectorAll('[required]');
+          requiredFields.forEach(field => {
+            field.removeAttribute('required');
+          });
+          
+          // Add required attribute to explanation field
+          const explanationField = noContactExplanation.querySelector('textarea');
+          if (explanationField) {
+            explanationField.setAttribute('required', 'required');
+          }
+        } else {
+          contactFields.style.display = 'block';
+          noContactExplanation.style.display = 'none';
+          
+          // Add required attribute back to contact fields
+          const nameField = contactFields.querySelector('input[name="employment_entry[contact_name]"]');
+          const typeField = contactFields.querySelector('select[name="employment_entry[contact_type]"]');
+          const methodField = contactFields.querySelector('select[name="employment_entry[contact_preferred_method]"]');
+          
+          if (nameField) nameField.setAttribute('required', 'required');
+          if (typeField) typeField.setAttribute('required', 'required');
+          if (methodField) methodField.setAttribute('required', 'required');
+          
+          // Remove required attribute from explanation field
+          const explanationField = noContactExplanation.querySelector('textarea');
+          if (explanationField) {
+            explanationField.removeAttribute('required');
+          }
+        }
+      });
+    }
+    
+    // Handle employment type selection
+    const typeSelect = document.getElementById('employment_type_select');
+    const jobFields = document.getElementById('job_fields');
+    
+    if (typeSelect && jobFields) {
+      typeSelect.addEventListener('change', function() {
+        const selectedType = this.value;
+        
+        if (selectedType === 'Job') {
+          jobFields.style.display = 'block';
+          
+          // Add required attribute to job fields
+          const requiredFields = jobFields.querySelectorAll('.form-control');
+          requiredFields.forEach(field => {
+            if (field.classList.contains('required-field')) {
+              field.setAttribute('required', 'required');
+            }
+          });
+        } else {
+          jobFields.style.display = 'none';
+          
+          // Remove required attribute from job fields
+          const requiredFields = jobFields.querySelectorAll('[required]');
+          requiredFields.forEach(field => {
+            field.removeAttribute('required');
+          });
+        }
+      });
+    }
+  });
+</script>

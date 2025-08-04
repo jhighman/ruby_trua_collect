@@ -1,0 +1,33 @@
+en:
+  tasks:
+    index:
+      title: "Tasks"
+      new_task: "New Task"
+      no_tasks: "No tasks found."
+      table:
+        title: "Title"
+        description: "Description"
+        status: "Status"
+        actions: "Actions"
+      status:
+        completed: "Completed"
+        pending: "Pending"
+      actions:
+        view: "View"
+    show:
+      back_to_tasks: "Back to Tasks"
+      status: "Status"
+      description: "Description"
+      created_at: "Created at"
+      completed_at: "Completed at"
+    new:
+      title: "New Task"
+      form:
+        title: "Title"
+        description: "Description"
+        create: "Create Task"
+        cancel: "Cancel"
+      errors:
+        header: "%{count} error(s) prohibited this task from being saved:"
+  language_name: "English"
+  language_switcher: "Change language"

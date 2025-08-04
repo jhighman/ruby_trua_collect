@@ -1,0 +1,120 @@
+<% content_for :layout do %>
+  <%= render template: 'layouts/verification' %>
+<% end %>
+
+<div class="card mb-4">
+  <div class="card-header">
+    <h2 class="h5 mb-0">Signature</h2>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-info">
+      <h4 class="alert-heading h6">Attestation</h4>
+      <p class="mb-0">By signing below, I certify that all information provided in this verification is true, complete, and accurate to the best of my knowledge. I understand that providing false information may result in the rejection of my verification and may have legal consequences.</p>
+    </div>
+    
+    <%= form_with model: @signature, url: update_step_verification_path(@claim.tracking_id, step: 'signature'), method: :post, class: 'needs-validation', id: 'signature-form', novalidate: true do |f| %>
+      <div class="mb-4">
+        <label class="form-label">Signature *</label>
+        <div class="border rounded mb-2">
+          <canvas id="signature-pad" class="signature-pad"></canvas>
+        </div>
+        <%= f.hidden_field :data, id: 'signature_data' %>
+        <div class="invalid-feedback">
+          Please provide your signature.
+        </div>
+        <div class="d-flex justify-content-end">
+          <button type="button" id="clear-signature" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-eraser"></i> Clear
+          </button>
+        </div>
+      </div>
+      
+      <div class="mb-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="confirm-signature" required>
+          <label class="form-check-label" for="confirm-signature">
+            I confirm that this is my legal signature
+          </label>
+          <div class="invalid-feedback">
+            You must confirm that this is your legal signature.
+          </div>
+        </div>
+      </div>
+      
+      <div class="d-flex justify-content-between mt-4">
+        <% 
+          previous_step = if @claim.requirements.verification_step_enabled?('professional_license')
+            'professional_licenses'
+          elsif @claim.requirements.verification_step_enabled?('education')
+            'education'
+          elsif @claim.requirements.verification_step_enabled?('employment_history')
+            'employment_history'
+          elsif @claim.requirements.verification_step_enabled?('residence_history')
+            'residence_history'
+          elsif @claim.requirements.consents_required?('driver_license') || 
+                @claim.requirements.consents_required?('drug_test') || 
+                @claim.requirements.consents_required?('biometric')
+            'consents'
+          else
+            'personal_info'
+          end
+        %>
+        <%= link_to 'Back', step_verification_path(@claim.tracking_id, step: previous_step), class: 'btn btn-outline-secondary' %>
+        <%= f.submit 'Submit Verification', class: 'btn btn-primary' %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  // Form validation
+  document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('.needs-validation');
+    
+    Array.from(forms).forEach(form => {
+      form.addEventListener('submit', event => {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        
+        form.classList.add('was-validated');
+      }, false);
+    });
+    
+    // Initialize signature pad
+    const canvas = document.getElementById('signature-pad');
+    const signaturePad = new SignaturePad(canvas, {
+      backgroundColor: 'rgb(255, 255, 255)'
+    });
+    
+    // Resize canvas to fit container
+    function resizeCanvas() {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      canvas.width = canvas.offsetWidth * ratio;
+      canvas.height = canvas.offsetHeight * ratio;
+      canvas.getContext("2d").scale(ratio, ratio);
+      signaturePad.clear(); // Otherwise isEmpty() might return incorrect value
+    }
+    
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+    
+    // Clear signature button
+    document.getElementById('clear-signature').addEventListener('click', function() {
+      signaturePad.clear();
+    });
+    
+    // Form submission
+    document.getElementById('signature-form').addEventListener('submit', function(e) {
+      if (signaturePad.isEmpty()) {
+        e.preventDefault();
+        alert('Please provide a signature');
+        return false;
+      }
+      
+      const signatureData = signaturePad.toDataURL('image/png');
+      document.getElementById('signature_data').value = signatureData;
+    });
+  });
+</script>

@@ -1,0 +1,263 @@
+<% content_for :layout do %>
+  <%= render template: 'layouts/verification' %>
+<% end %>
+
+<div class="card mb-4">
+  <div class="card-header bg-success text-white">
+    <h2 class="h5 mb-0">Verification Submitted Successfully</h2>
+  </div>
+  <div class="card-body">
+    <div class="text-center mb-4">
+      <div class="display-1 text-success mb-3">
+        <i class="bi bi-check-circle"></i>
+      </div>
+      <h3>Thank You!</h3>
+      <p class="lead">Your verification has been submitted successfully.</p>
+    </div>
+    
+    <div class="alert alert-info">
+      <h4 class="alert-heading h6">Tracking Information</h4>
+      <p class="mb-0">
+        <strong>Tracking ID:</strong> <%= @claim.tracking_id %><br>
+        <strong>Submission Date:</strong> <%= @claim.submission_date&.strftime('%B %d, %Y at %I:%M %p') %>
+      </p>
+    </div>
+    
+    <div class="mb-4">
+      <h4 class="h6">Next Steps</h4>
+      <ol>
+        <li>Your verification will be reviewed by our team.</li>
+        <li>You may be contacted if additional information is needed.</li>
+        <li>Once the verification is complete, you will be notified of the results.</li>
+      </ol>
+    </div>
+    
+    <div class="d-flex justify-content-center gap-3 mb-4">
+      <%= link_to claim_path(@claim, format: :json), class: 'btn btn-outline-primary', target: '_blank' do %>
+        <i class="bi bi-file-earmark-code"></i> Download JSON
+      <% end %>
+      
+      <%= link_to claim_path(@claim, format: :pdf), class: 'btn btn-primary', target: '_blank' do %>
+        <i class="bi bi-file-earmark-pdf"></i> Download PDF
+      <% end %>
+    </div>
+    
+    <div class="text-center">
+      <p class="text-muted">
+        Please save a copy of your verification for your records.
+      </p>
+      
+      <%= link_to root_path, class: 'btn btn-outline-secondary' do %>
+        <i class="bi bi-house"></i> Return to Home
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="h5 mb-0">Verification Summary</h2>
+  </div>
+  <div class="card-body">
+    <% if @claim.claimant.present? %>
+      <div class="mb-4">
+        <h5 class="border-bottom pb-2">Personal Information</h5>
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Full Name:</strong> <%= @claim.claimant.full_name %></p>
+            <p><strong>Email:</strong> <%= @claim.claimant.email %></p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Phone:</strong> <%= @claim.claimant.phone %></p>
+            <p><strong>Date of Birth:</strong> <%= @claim.claimant.date_of_birth&.strftime('%Y-%m-%d') %></p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    
+    <% if @claim.consents.present? %>
+      <div class="mb-4">
+        <h5 class="border-bottom pb-2">Consents</h5>
+        <ul class="list-group">
+          <% if @claim.requirements.consents_required?('driver_license') %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Driver's License Verification
+              <% if @claim.consents.consent_granted?('driver_license') %>
+                <span class="badge bg-success">Granted</span>
+              <% else %>
+                <span class="badge bg-danger">Not Granted</span>
+              <% end %>
+            </li>
+          <% end %>
+          
+          <% if @claim.requirements.consents_required?('drug_test') %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Drug Test
+              <% if @claim.consents.consent_granted?('drug_test') %>
+                <span class="badge bg-success">Granted</span>
+              <% else %>
+                <span class="badge bg-danger">Not Granted</span>
+              <% end %>
+            </li>
+          <% end %>
+          
+          <% if @claim.requirements.consents_required?('biometric') %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Biometric Verification
+              <% if @claim.consents.consent_granted?('biometric') %>
+                <span class="badge bg-success">Granted</span>
+              <% else %>
+                <span class="badge bg-danger">Not Granted</span>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    
+    <% if @claim.residence_history.present? && @claim.residence_history.residence_entries.any? %>
+      <div class="mb-4">
+        <h5 class="border-bottom pb-2">Residence History</h5>
+        <p><strong>Total Years:</strong> <%= @claim.residence_history.total_years.round(1) %></p>
+        
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th>Address</th>
+                <th>City</th>
+                <th>State/Province</th>
+                <th>Country</th>
+                <th>Period</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @claim.residence_history.residence_entries.each do |entry| %>
+                <tr>
+                  <td><%= entry.address %></td>
+                  <td><%= entry.city %></td>
+                  <td><%= entry.state_province %></td>
+                  <td><%= entry.country %></td>
+                  <td>
+                    <%= entry.start_date&.strftime('%Y-%m-%d') %> to 
+                    <%= entry.is_current ? 'Present' : entry.end_date&.strftime('%Y-%m-%d') %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+    
+    <% if @claim.employment_history.present? && @claim.employment_history.employment_entries.any? %>
+      <div class="mb-4">
+        <h5 class="border-bottom pb-2">Employment History</h5>
+        <p><strong>Total Years:</strong> <%= @claim.employment_history.total_years.round(1) %></p>
+        
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Position</th>
+                <th>Location</th>
+                <th>Period</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @claim.employment_history.employment_entries.each do |entry| %>
+                <tr>
+                  <td><%= entry.company %></td>
+                  <td><%= entry.position %></td>
+                  <td><%= "#{entry.city}, #{entry.state_province}, #{entry.country}" %></td>
+                  <td>
+                    <%= entry.start_date&.strftime('%Y-%m-%d') %> to 
+                    <%= entry.is_current ? 'Present' : entry.end_date&.strftime('%Y-%m-%d') %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+    
+    <% if @claim.education.present? %>
+      <div class="mb-4">
+        <h5 class="border-bottom pb-2">Education</h5>
+        <p><strong>Highest Level:</strong> <%= @claim.education.highest_level %></p>
+        
+        <% if @claim.education.education_entries.any? %>
+          <div class="table-responsive">
+            <table class="table table-sm table-striped">
+              <thead>
+                <tr>
+                  <th>Institution</th>
+                  <th>Degree</th>
+                  <th>Field of Study</th>
+                  <th>Period</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @claim.education.education_entries.each do |entry| %>
+                  <tr>
+                    <td><%= entry.institution %></td>
+                    <td><%= entry.degree %></td>
+                    <td><%= entry.field_of_study %></td>
+                    <td>
+                      <%= entry.start_date&.strftime('%Y-%m-%d') %> to 
+                      <%= entry.is_current ? 'Present' : entry.end_date&.strftime('%Y-%m-%d') %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+    
+    <% if @claim.professional_licenses.present? && @claim.professional_licenses.professional_license_entries.any? %>
+      <div class="mb-4">
+        <h5 class="border-bottom pb-2">Professional Licenses</h5>
+        
+        <div class="table-responsive">
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr>
+                <th>License Type</th>
+                <th>License Number</th>
+                <th>Issuing Authority</th>
+                <th>Status</th>
+                <th>Expiration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @claim.professional_licenses.professional_license_entries.each do |entry| %>
+                <tr>
+                  <td><%= entry.license_type %></td>
+                  <td><%= entry.license_number %></td>
+                  <td><%= entry.issuing_authority %></td>
+                  <td><%= entry.is_active ? 'Active' : 'Inactive' %></td>
+                  <td><%= entry.expiration_date&.strftime('%Y-%m-%d') %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+    
+    <% if @claim.signature.present? %>
+      <div class="mb-4">
+        <h5 class="border-bottom pb-2">Signature</h5>
+        <p><strong>Date:</strong> <%= @claim.signature.date&.strftime('%B %d, %Y at %I:%M %p') %></p>
+        
+        <div class="mt-2 border p-3 bg-light">
+          <img src="<%= @claim.signature.data %>" alt="Signature" style="max-width: 300px;">
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

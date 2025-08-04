@@ -1,0 +1,33 @@
+fr:
+  tasks:
+    index:
+      title: "Tâches"
+      new_task: "Nouvelle Tâche"
+      no_tasks: "Aucune tâche trouvée."
+      table:
+        title: "Titre"
+        description: "Description"
+        status: "Statut"
+        actions: "Actions"
+      status:
+        completed: "Terminée"
+        pending: "En attente"
+      actions:
+        view: "Voir"
+    show:
+      back_to_tasks: "Retour aux Tâches"
+      status: "Statut"
+      description: "Description"
+      created_at: "Créée le"
+      completed_at: "Terminée le"
+    new:
+      title: "Nouvelle Tâche"
+      form:
+        title: "Titre"
+        description: "Description"
+        create: "Créer Tâche"
+        cancel: "Annuler"
+      errors:
+        header: "%{count} erreur(s) ont empêché cette tâche d'être enregistrée:"
+  language_name: "Français"
+  language_switcher: "Changer de langue"

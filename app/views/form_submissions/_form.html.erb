@@ -1,0 +1,46 @@
+<div class="card">
+  <div class="card-header">
+    <h2 class="h5 mb-0"><%= step_title %></h2>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-danger d-none" data-form-target="errorContainer">
+      <!-- Errors will be dynamically rendered here by the FormController -->
+    </div>
+    
+    <%= form_with model: @form_submission,
+                  url: form_submission_path(step_id: @step_id),
+                  method: :patch,
+                  class: 'needs-validation',
+                  data: {
+                    controller: 'form',
+                    form_step_id_value: @step_id,
+                    form_form_id_value: @form_submission.id,
+                    form_requirements_value: @requirements.to_json
+                  } do |form| %>
+      <%= yield form %>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  // Initialize error container with existing errors
+  document.addEventListener('DOMContentLoaded', function() {
+    const errorContainer = document.querySelector('[data-form-target="errorContainer"]');
+    const errors = <%= raw @form_submission.step_errors(@step_id).to_json %>;
+    
+    if (errorContainer && Object.keys(errors).length > 0) {
+      errorContainer.classList.remove('d-none');
+      
+      const errorList = document.createElement('ul');
+      errorList.classList.add('mb-0');
+      
+      Object.entries(errors).forEach(([field, error]) => {
+        const errorItem = document.createElement('li');
+        errorItem.textContent = `${field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}: ${error}`;
+        errorList.appendChild(errorItem);
+      });
+      
+      errorContainer.appendChild(errorList);
+    }
+  });
+</script>

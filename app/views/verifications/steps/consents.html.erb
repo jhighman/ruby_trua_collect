@@ -1,0 +1,115 @@
+<% content_for :layout do %>
+  <%= render template: 'layouts/verification' %>
+<% end %>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="h5 mb-0">Required Consents</h2>
+  </div>
+  <div class="card-body">
+    <p class="text-muted mb-4">Please review and grant the following consents that are required for your verification.</p>
+    
+    <%= form_with url: update_step_verification_path(@claim.tracking_id, step: 'consents'), method: :post, class: 'needs-validation', novalidate: true do |f| %>
+      <% if @claim.requirements.consents_required?('driver_license') %>
+        <div class="card mb-4">
+          <div class="card-header bg-light">
+            <h3 class="h6 mb-0">Driver's License Consent</h3>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <p>I authorize Trua Verify to verify my driver's license information with the appropriate Department of Motor Vehicles or equivalent agency. This verification may include my license status, issue date, expiration date, and any restrictions or violations.</p>
+              
+              <div class="form-check">
+                <%= f.check_box :driver_license_consent, class: 'form-check-input', required: true, checked: @claim.consents&.consent_granted?('driver_license') %>
+                <%= f.label :driver_license_consent, 'I grant consent for driver\'s license verification', class: 'form-check-label' %>
+                <div class="invalid-feedback">
+                  You must grant consent to proceed.
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <%= f.label :driver_license_notes, 'Notes (Optional)', class: 'form-label' %>
+              <%= f.text_area :driver_license_notes, class: 'form-control', rows: 2, value: @claim.consents&.consent_notes('driver_license') %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      
+      <% if @claim.requirements.consents_required?('drug_test') %>
+        <div class="card mb-4">
+          <div class="card-header bg-light">
+            <h3 class="h6 mb-0">Drug Test Consent</h3>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <p>I authorize Trua Verify to conduct a drug test as part of the verification process. I understand that the results of this test will be shared with the requesting organization and may affect my eligibility for employment or other opportunities.</p>
+              
+              <div class="form-check">
+                <%= f.check_box :drug_test_consent, class: 'form-check-input', required: true, checked: @claim.consents&.consent_granted?('drug_test') %>
+                <%= f.label :drug_test_consent, 'I grant consent for drug testing', class: 'form-check-label' %>
+                <div class="invalid-feedback">
+                  You must grant consent to proceed.
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <%= f.label :drug_test_notes, 'Notes (Optional)', class: 'form-label' %>
+              <%= f.text_area :drug_test_notes, class: 'form-control', rows: 2, value: @claim.consents&.consent_notes('drug_test') %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      
+      <% if @claim.requirements.consents_required?('biometric') %>
+        <div class="card mb-4">
+          <div class="card-header bg-light">
+            <h3 class="h6 mb-0">Biometric Consent</h3>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <p>I authorize Trua Verify to collect, store, and use my biometric information (such as fingerprints, facial recognition, or other unique physical characteristics) for the purpose of identity verification. I understand that this information will be securely stored and used only for verification purposes.</p>
+              
+              <div class="form-check">
+                <%= f.check_box :biometric_consent, class: 'form-check-input', required: true, checked: @claim.consents&.consent_granted?('biometric') %>
+                <%= f.label :biometric_consent, 'I grant consent for biometric verification', class: 'form-check-label' %>
+                <div class="invalid-feedback">
+                  You must grant consent to proceed.
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <%= f.label :biometric_notes, 'Notes (Optional)', class: 'form-label' %>
+              <%= f.text_area :biometric_notes, class: 'form-control', rows: 2, value: @claim.consents&.consent_notes('biometric') %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+      
+      <div class="d-flex justify-content-between mt-4">
+        <%= link_to 'Back', step_verification_path(@claim.tracking_id, step: 'personal_info'), class: 'btn btn-outline-secondary' %>
+        <%= f.submit 'Next', class: 'btn btn-primary' %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  // Form validation
+  document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('.needs-validation');
+    
+    Array.from(forms).forEach(form => {
+      form.addEventListener('submit', event => {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        
+        form.classList.add('was-validated');
+      }, false);
+    });
+  });
+</script>

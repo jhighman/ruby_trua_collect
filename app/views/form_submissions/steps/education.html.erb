@@ -1,0 +1,81 @@
+<%= render layout: 'form_submissions/form', locals: { step_title: 'Education History' } do |form| %>
+  <div class="mb-4">
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <%= form.label :highest_level, 'Highest Education Level', class: 'form-label' %>
+        <%= form.select :highest_level, 
+                        options_for_select([
+                          ['High School', 'high_school'],
+                          ['College/University', 'college'],
+                          ['Master\'s Degree', 'masters'],
+                          ['Doctorate', 'doctorate']
+                        ], @form_submission.step_values(@step_id)['highest_level']),
+                        { include_blank: 'Select your highest education level' },
+                        { class: 'form-select', required: true, data: { form_target: 'field', action: 'change->form#toggleEducationEntries' } } %>
+      </div>
+    </div>
+    
+    <div id="education-entries" class="<%= @form_submission.step_values(@step_id)['highest_level'].in?(['college', 'masters', 'doctorate']) ? '' : 'd-none' %>">
+      <p>Please provide details about your education history.</p>
+      
+      <div data-form-target="timelineEntries" class="mb-4">
+        <!-- Timeline entries will be dynamically rendered here by the FormController -->
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Add Education</h5>
+        </div>
+        <div class="card-body">
+          <%= form_with url: '#', html: { data: { action: 'submit->form#addTimelineEntry' } } do |entry_form| %>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <%= entry_form.label :institution, class: 'form-label' %>
+                <%= entry_form.text_field 'entry[institution]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+              </div>
+              <div class="col-md-6">
+                <%= entry_form.label :degree, class: 'form-label' %>
+                <%= entry_form.text_field 'entry[degree]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+              </div>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <%= entry_form.label :field_of_study, class: 'form-label' %>
+                <%= entry_form.text_field 'entry[field_of_study]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+              </div>
+              <div class="col-md-6">
+                <%= entry_form.label :location, class: 'form-label' %>
+                <%= entry_form.text_field 'entry[location]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+              </div>
+            </div>
+            
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <%= entry_form.label :start_date, class: 'form-label' %>
+                <%= entry_form.date_field 'entry[start_date]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+              </div>
+              <div class="col-md-6">
+                <%= entry_form.label :end_date, class: 'form-label' %>
+                <%= entry_form.date_field 'entry[end_date]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+              </div>
+            </div>
+            
+            <div class="form-check mb-3">
+              <%= entry_form.check_box 'entry[is_current]', class: 'form-check-input', data: { action: 'change->form#toggleEndDate', form_target: 'field' } %>
+              <%= entry_form.label 'entry[is_current]', 'I am currently studying here', class: 'form-check-label' %>
+            </div>
+            
+            <div class="d-grid">
+              <%= entry_form.submit 'Add Education', class: 'btn btn-primary' %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div data-form-target="navigation" class="d-flex justify-content-between mt-4">
+    <!-- Navigation buttons will be dynamically rendered here by the FormController -->
+  </div>
+<% end %>

@@ -1,0 +1,35 @@
+<h1 class="text-3xl font-bold mb-6"><%= t('tasks.new.title') %></h1>
+
+<div class="bg-white shadow-md rounded-lg p-6">
+  <%= form_with(model: @task, local: true) do |form| %>
+    <% if @task.errors.any? %>
+      <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+        <div class="flex">
+          <div class="ml-3">
+            <h2 class="text-lg font-medium text-red-800"><%= t('tasks.new.errors.header', count: @task.errors.count) %></h2>
+            <ul class="mt-2 text-red-700 list-disc list-inside">
+              <% @task.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="mb-4">
+      <%= form.label :title, t('tasks.new.form.title'), class: "block text-gray-700 text-sm font-bold mb-2" %>
+      <%= form.text_field :title, class: "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" %>
+    </div>
+
+    <div class="mb-6">
+      <%= form.label :description, t('tasks.new.form.description'), class: "block text-gray-700 text-sm font-bold mb-2" %>
+      <%= form.text_area :description, class: "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline", rows: 5 %>
+    </div>
+
+    <div class="flex items-center justify-between">
+      <%= form.submit t('tasks.new.form.create'), class: "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" %>
+      <%= link_to t('tasks.new.form.cancel'), tasks_path, class: "bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" %>
+    </div>
+  <% end %>
+</div>

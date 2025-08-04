@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Trua Verify</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    
+    <style>
+      .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+      }
+      
+      .step-item {
+        flex: 1;
+        text-align: center;
+        padding: 0.5rem;
+        position: relative;
+      }
+      
+      .step-item:not(:last-child):after {
+        content: '';
+        position: absolute;
+        top: 1.5rem;
+        right: -50%;
+        width: 100%;
+        height: 2px;
+        background-color: #dee2e6;
+        z-index: 1;
+      }
+      
+      .step-number {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        background-color: #dee2e6;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+        font-weight: bold;
+        position: relative;
+        z-index: 2;
+      }
+      
+      .step-title {
+        font-size: 0.875rem;
+        color: #6c757d;
+      }
+      
+      .step-item.active .step-number {
+        background-color: #0d6efd;
+        color: white;
+      }
+      
+      .step-item.active .step-title {
+        color: #0d6efd;
+        font-weight: bold;
+      }
+      
+      .step-item.completed .step-number {
+        background-color: #198754;
+        color: white;
+      }
+      
+      .step-item.completed .step-title {
+        color: #198754;
+      }
+      
+      .step-item.completed .step-number:after {
+        content: '✓';
+      }
+      
+      .signature-pad {
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        width: 100%;
+        height: 200px;
+        background-color: white;
+      }
+      
+      .timeline-visualization {
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.25rem;
+      }
+      
+      .timeline-bar {
+        height: 2rem;
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+        position: relative;
+        margin-top: 0.5rem;
+      }
+      
+      .timeline-segment {
+        position: absolute;
+        height: 100%;
+        background-color: #0d6efd;
+        border-radius: 0.25rem;
+      }
+      
+      .timeline-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        color: #6c757d;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container py-4">
+      <header class="mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+          <h1 class="h3">Trua Verify</h1>
+          <div>
+            <span class="badge bg-primary">Tracking ID: <%= @claim&.tracking_id %></span>
+          </div>
+        </div>
+      </header>
+      
+      <% if @step.present? && @claim.present? %>
+        <div class="step-indicator">
+          <% valid_steps = ['personal_info'] %>
+          <% if @claim.requirements.consents_required?('driver_license') || 
+                @claim.requirements.consents_required?('drug_test') || 
+                @claim.requirements.consents_required?('biometric') %>
+            <% valid_steps << 'consents' %>
+          <% end %>
+          <% if @claim.requirements.verification_step_enabled?('residence_history') %>
+            <% valid_steps << 'residence_history' %>
+          <% end %>
+          <% if @claim.requirements.verification_step_enabled?('employment_history') %>
+            <% valid_steps << 'employment_history' %>
+          <% end %>
+          <% if @claim.requirements.verification_step_enabled?('education') %>
+            <% valid_steps << 'education' %>
+          <% end %>
+          <% if @claim.requirements.verification_step_enabled?('professional_license') %>
+            <% valid_steps << 'professional_licenses' %>
+          <% end %>
+          <% valid_steps << 'signature' %>
+          
+          <% valid_steps.each_with_index do |step, index| %>
+            <% 
+              step_title = case step
+                when 'personal_info' then 'Personal Info'
+                when 'consents' then 'Consents'
+                when 'residence_history' then 'Residence History'
+                when 'employment_history' then 'Employment History'
+                when 'education' then 'Education'
+                when 'professional_licenses' then 'Professional Licenses'
+                when 'signature' then 'Signature'
+                else step.titleize
+              end
+              
+              is_completed = case step
+                when 'personal_info' then @claim.claimant&.complete?
+                when 'consents' then @claim.consents&.complete?
+                when 'residence_history' then @claim.residence_history&.complete?
+                when 'employment_history' then @claim.employment_history&.complete?
+                when 'education' then @claim.education&.complete?
+                when 'professional_licenses' then @claim.professional_licenses&.complete?
+                when 'signature' then @claim.signature.present?
+                else false
+              end
+              
+              is_active = @step == step
+              
+              step_class = if is_active
+                'active'
+              elsif is_completed
+                'completed'
+              else
+                ''
+              end
+            %>
+            
+            <div class="step-item <%= step_class %>">
+              <div class="step-number"><%= index + 1 %></div>
+              <div class="step-title"><%= step_title %></div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+      
+      <% if notice %>
+        <div class="alert alert-success"><%= notice %></div>
+      <% end %>
+      
+      <% if alert %>
+        <div class="alert alert-danger"><%= alert %></div>
+      <% end %>
+      
+      <main>
+        <%= yield %>
+      </main>
+      
+      <footer class="mt-5 pt-3 border-top text-center text-muted">
+        <p>&copy; <%= Time.current.year %> Trua Verify. All rights reserved.</p>
+      </footer>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    
+    <% if @step == 'signature' %>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const canvas = document.getElementById('signature-pad');
+          const signaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'rgb(255, 255, 255)'
+          });
+          
+          document.getElementById('clear-signature').addEventListener('click', function() {
+            signaturePad.clear();
+          });
+          
+          document.getElementById('signature-form').addEventListener('submit', function(e) {
+            if (signaturePad.isEmpty()) {
+              e.preventDefault();
+              alert('Please provide a signature');
+              return false;
+            }
+            
+            const signatureData = signaturePad.toDataURL('image/png');
+            document.getElementById('signature_data').value = signatureData;
+          });
+        });
+      </script>
+    <% end %>
+  </body>
+</html>

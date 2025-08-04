@@ -1,0 +1,79 @@
+<div class="container mt-4">
+  <h1>New Verification Request</h1>
+
+  <%= form_with(model: @claim, local: true) do |form| %>
+    <% if @claim.errors.any? %>
+      <div class="alert alert-danger mb-4">
+        <h4><%= pluralize(@claim.errors.count, "error") %> prohibited this verification request from being saved:</h4>
+        <ul>
+          <% @claim.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <!-- Hidden fields for claim metadata -->
+    <%= form.hidden_field :tracking_id, value: SecureRandom.uuid %>
+    <%= form.hidden_field :submission_date, value: Time.current %>
+    <%= form.hidden_field :collection_key, value: params[:collection_key] || "en-EPM-N-R3-E3-E-P-W" %>
+    <%= form.hidden_field :language, value: I18n.locale %>
+
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5>Personal Information</h5>
+        <span class="badge bg-primary">Step 1</span>
+      </div>
+      <div class="card-body">
+        <%= form.fields_for :claimant, Claimant.new do |claimant_form| %>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="form-group">
+                <%= claimant_form.label :full_name, "Full Name", class: "form-label" %>
+                <%= claimant_form.text_field :full_name, class: "form-control", required: true %>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <%= claimant_form.label :date_of_birth, "Date of Birth", class: "form-label" %>
+                <%= claimant_form.date_field :date_of_birth, class: "form-control", required: true %>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="form-group">
+                <%= claimant_form.label :email, "Email Address", class: "form-label" %>
+                <%= claimant_form.email_field :email, class: "form-control", required: true %>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group">
+                <%= claimant_form.label :phone, "Phone Number", class: "form-label" %>
+                <%= claimant_form.telephone_field :phone, class: "form-control", required: true %>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <div class="form-group">
+                <%= claimant_form.label :ssn, "Social Security Number", class: "form-label" %>
+                <%= claimant_form.text_field :ssn, class: "form-control", required: true, placeholder: "123-45-6789" %>
+                <small class="form-text text-muted">Format: XXX-XX-XXXX</small>
+              </div>
+            </div>
+          </div>
+          
+          <%= claimant_form.hidden_field :completed_at, value: Time.current %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+      <%= link_to "Cancel", claims_path, class: "btn btn-secondary" %>
+      <%= form.submit "Continue to Next Step", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>

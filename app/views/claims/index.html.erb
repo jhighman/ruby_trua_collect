@@ -1,0 +1,57 @@
+<div class="container mt-4">
+  <h1>Claims</h1>
+
+  <div class="mb-4">
+    <%= link_to 'New Claim', new_claim_path, class: 'btn btn-primary' %>
+  </div>
+
+  <% if @claims.any? %>
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Tracking ID</th>
+            <th>Submission Date</th>
+            <th>Collection Key</th>
+            <th>Language</th>
+            <th>Status</th>
+            <th colspan="3">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% @claims.each do |claim| %>
+            <tr>
+              <td><%= claim.tracking_id %></td>
+              <td><%= claim.submission_date&.strftime('%Y-%m-%d %H:%M') %></td>
+              <td><%= claim.collection_key %></td>
+              <td><%= claim.language %></td>
+              <td>
+                <% if claim.claimant&.complete? && 
+                      claim.consents&.complete? && 
+                      claim.residence_history&.complete? && 
+                      claim.employment_history&.complete? && 
+                      claim.education&.complete? && 
+                      claim.professional_licenses&.complete? && 
+                      claim.signature.present? %>
+                  <span class="badge bg-success">Complete</span>
+                <% else %>
+                  <span class="badge bg-warning">Incomplete</span>
+                <% end %>
+              </td>
+              <td>
+                <%= link_to 'View', claim, class: 'btn btn-sm btn-info' %>
+                <%= link_to 'Edit', edit_claim_path(claim), class: 'btn btn-sm btn-secondary' %>
+                <%= link_to 'Delete', claim, method: :delete, data: { confirm: 'Are you sure?' }, class: 'btn btn-sm btn-danger' %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <div class="alert alert-info">
+      No claims found. Click "New Claim" to create one.
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,48 @@
+<h1>Form Submission Complete</h1>
+
+<div class="alert alert-success">
+  <p>Thank you for completing the form. Your submission has been received.</p>
+</div>
+
+<div class="form-summary">
+  <h2>Summary</h2>
+  
+  <% @form_state.available_steps.each do |step_id| %>
+    <div class="step-summary">
+      <h3><%= step_id.humanize %></h3>
+      
+      <% step_values = @form_submission.step_values(step_id) %>
+      <% if step_values.present? %>
+        <dl>
+          <% step_values.each do |key, value| %>
+            <% next if key == 'entries' %>
+            <dt><%= key.humanize %></dt>
+            <dd><%= value %></dd>
+          <% end %>
+        </dl>
+        
+        <% if step_values['entries'].present? %>
+          <h4>Entries</h4>
+          <ul>
+            <% step_values['entries'].each do |entry| %>
+              <li>
+                <dl>
+                  <% entry.each do |key, value| %>
+                    <dt><%= key.humanize %></dt>
+                    <dd><%= value %></dd>
+                  <% end %>
+                </dl>
+              </li>
+            <% end %>
+          </ul>
+        <% end %>
+      <% else %>
+        <p>No data provided for this step.</p>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<div class="actions">
+  <%= link_to 'Start a New Form', form_submission_path, class: 'btn btn-primary' %>
+</div>

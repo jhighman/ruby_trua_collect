@@ -1,0 +1,68 @@
+<%= render layout: 'form_submissions/form', locals: { step_title: 'Residence History' } do |form| %>
+  <div class="mb-4">
+    <p>Please provide your residence history for the past <%= @requirements.residence_history_years %> years.</p>
+    
+    <div data-form-target="timelineEntries" class="mb-4">
+      <!-- Timeline entries will be dynamically rendered here by the FormController -->
+    </div>
+    
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Add New Residence</h5>
+      </div>
+      <div class="card-body">
+        <%= form_with url: '#', html: { data: { action: 'submit->form#addTimelineEntry' } } do |entry_form| %>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <%= entry_form.label :start_date, class: 'form-label' %>
+              <%= entry_form.date_field 'entry[start_date]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+            </div>
+            <div class="col-md-6">
+              <%= entry_form.label :end_date, class: 'form-label' %>
+              <%= entry_form.date_field 'entry[end_date]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <%= entry_form.label :address, class: 'form-label' %>
+              <%= entry_form.text_field 'entry[address]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+            </div>
+            <div class="col-md-6">
+              <%= entry_form.label :city, class: 'form-label' %>
+              <%= entry_form.text_field 'entry[city]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+            </div>
+          </div>
+          
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <%= entry_form.label :state_province, 'State/Province', class: 'form-label' %>
+              <%= entry_form.text_field 'entry[state_province]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+            </div>
+            <div class="col-md-4">
+              <%= entry_form.label :zip_postal, 'ZIP/Postal Code', class: 'form-label' %>
+              <%= entry_form.text_field 'entry[zip_postal]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+            </div>
+            <div class="col-md-4">
+              <%= entry_form.label :country, class: 'form-label' %>
+              <%= entry_form.text_field 'entry[country]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+            </div>
+          </div>
+          
+          <div class="form-check mb-3">
+            <%= entry_form.check_box 'entry[is_current]', class: 'form-check-input', data: { action: 'change->form#toggleEndDate', form_target: 'field' } %>
+            <%= entry_form.label 'entry[is_current]', 'This is my current residence', class: 'form-check-label' %>
+          </div>
+          
+          <div class="d-grid">
+            <%= entry_form.submit 'Add Residence', class: 'btn btn-primary' %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  
+  <div data-form-target="navigation" class="d-flex justify-content-between mt-4">
+    <!-- Navigation buttons will be dynamically rendered here by the FormController -->
+  </div>
+<% end %>

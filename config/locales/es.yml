@@ -1,0 +1,33 @@
+es:
+  tasks:
+    index:
+      title: "Tareas"
+      new_task: "Nueva Tarea"
+      no_tasks: "No se encontraron tareas."
+      table:
+        title: "Título"
+        description: "Descripción"
+        status: "Estado"
+        actions: "Acciones"
+      status:
+        completed: "Completada"
+        pending: "Pendiente"
+      actions:
+        view: "Ver"
+    show:
+      back_to_tasks: "Volver a Tareas"
+      status: "Estado"
+      description: "Descripción"
+      created_at: "Creada el"
+      completed_at: "Completada el"
+    new:
+      title: "Nueva Tarea"
+      form:
+        title: "Título"
+        description: "Descripción"
+        create: "Crear Tarea"
+        cancel: "Cancelar"
+      errors:
+        header: "%{count} error(es) impidieron que esta tarea fuera guardada:"
+  language_name: "Español"
+  language_switcher: "Cambiar idioma"
