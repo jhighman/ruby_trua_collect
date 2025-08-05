@@ -1,0 +1,47 @@
+# Ignore bundler config
+/.bundle
+
+# Ignore all logfiles and tempfiles
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore pidfiles
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+
+# Ignore uploaded files in development
+/storage/*
+!/storage/.keep
+
+# Ignore master key for decrypting credentials
+/config/master.key
+
+# Ignore bootsnap cache
+/tmp/cache/bootsnap*
+
+# Ignore node modules
+/node_modules
+
+# Ignore yarn files
+/yarn-error.log
+yarn-debug.log*
+.yarn-integrity
+
+# Ignore coverage files
+/coverage/
+
+# Ignore environment files
+.env
+.env.*
+
+# Ignore database dumps
+*.dump
+
+# Ignore Mac system files
+.DS_Store
+
+# Ignore RSpec state
+spec/examples.txt
