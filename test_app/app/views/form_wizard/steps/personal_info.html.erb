@@ -1,0 +1,41 @@
+<div class="form-wizard-step">
+  <h2><%= t('.title', default: 'Personal Information') %></h2>
+  
+  <p class="step-description">
+    <%= t('.description', default: 'Please provide your personal information.') %>
+  </p>
+  
+  <%= form_with model: @form_submission, url: form_submission_path, method: :patch, local: true, class: 'form-wizard-form' do |f| %>
+    <% if @errors.present? %>
+      <div class="form-wizard-errors">
+        <ul>
+          <% @errors.each do |error| %>
+            <li><%= error %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    
+    <div class="form-wizard-fields">
+      <div class="form-group field-required">
+        <%= f.label :first_name, t('.first_name_label', default: 'First Name') %>
+        <%= f.text_field :first_name, name: 'form_submission[first_name]', class: 'form-control', value: @form_submission.get_field_value(:first_name) %>
+      </div>
+      
+      <div class="form-group field-required">
+        <%= f.label :last_name, t('.last_name_label', default: 'Last Name') %>
+        <%= f.text_field :last_name, name: 'form_submission[last_name]', class: 'form-control', value: @form_submission.get_field_value(:last_name) %>
+      </div>
+      
+      <div class="form-group">
+        <%= f.label :date_of_birth, t('.date_of_birth_label', default: 'Date of Birth') %>
+        <%= f.date_field :date_of_birth, name: 'form_submission[date_of_birth]', class: 'form-control', value: @form_submission.get_field_value(:date_of_birth) %>
+        <div class="field-hint"><%= t('.date_of_birth_hint', default: 'You must be at least 18 years old.') %></div>
+      </div>
+    </div>
+    
+    <div class="form-wizard-actions">
+      <%= f.submit t('form_wizard.common.continue', default: 'Continue'), class: 'btn btn-primary' %>
+    </div>
+  <% end %>
+</div>

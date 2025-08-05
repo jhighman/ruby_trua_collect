@@ -1,0 +1,51 @@
+<div class="form-wizard-step">
+  <h2><%= t('.title', default: 'Contact Details') %></h2>
+  
+  <p class="step-description">
+    <%= t('.description', default: 'Please provide your contact information.') %>
+  </p>
+  
+  <%= form_with model: @form_submission, url: form_submission_path, method: :patch, local: true, class: 'form-wizard-form' do |f| %>
+    <% if @errors.present? %>
+      <div class="form-wizard-errors">
+        <ul>
+          <% @errors.each do |error| %>
+            <li><%= error %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    
+    <div class="form-wizard-fields">
+      <div class="form-group field-required">
+        <%= f.label :email, t('.email_label', default: 'Email Address') %>
+        <%= f.email_field :email, name: 'form_submission[email]', class: 'form-control', value: @form_submission.get_field_value(:email) %>
+      </div>
+      
+      <div class="form-group">
+        <%= f.label :phone, t('.phone_label', default: 'Phone Number') %>
+        <%= f.telephone_field :phone, name: 'form_submission[phone]', class: 'form-control', value: @form_submission.get_field_value(:phone) %>
+        <div class="field-hint"><%= t('.phone_hint', default: 'Format: +1 (555) 555-5555') %></div>
+      </div>
+      
+      <div class="form-group field-required">
+        <%= f.label :preferred_contact, t('.preferred_contact_label', default: 'Preferred Contact Method') %>
+        <%= f.select :preferred_contact, 
+                    [
+                      [t('.preferred_contact_email', default: 'Email'), 'email'],
+                      [t('.preferred_contact_phone', default: 'Phone'), 'phone']
+                    ],
+                    { prompt: t('.preferred_contact_prompt', default: 'Select a contact method'), selected: @form_submission.get_field_value(:preferred_contact) },
+                    { name: 'form_submission[preferred_contact]', class: 'form-control' } %>
+      </div>
+    </div>
+    
+    <div class="form-wizard-actions">
+      <% if @previous_step %>
+        <%= link_to t('form_wizard.common.back', default: 'Back'), form_submission_path(step: @previous_step), class: 'btn btn-secondary' %>
+      <% end %>
+      
+      <%= f.submit t('form_wizard.common.continue', default: 'Continue'), class: 'btn btn-primary' %>
+    </div>
+  <% end %>
+</div>

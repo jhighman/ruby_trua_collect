@@ -43,6 +43,9 @@ gem "thruster", require: false
 # Use Tailwind CSS for styling [https://github.com/rails/tailwindcss-rails]
 gem "tailwindcss-rails"
 
+# Use ViewComponent for building reusable view components [https://viewcomponent.org/]
+gem "view_component"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

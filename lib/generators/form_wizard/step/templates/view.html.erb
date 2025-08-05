@@ -1,0 +1,41 @@
+<%%= render FormWizard::WizardComponent.new(
+  form_submission: @form_submission,
+  step_id: '<%= file_name %>'
+) %>
+
+<%# 
+  This file is not required if you're using the WizardComponent,
+  but it's generated as a convenience in case you need to customize
+  the rendering for this specific step.
+  
+  If you want to customize the rendering, you can replace the WizardComponent
+  with your own implementation, or you can use the FormComponent directly:
+  
+  <%%= render FormWizard::FormComponent.new(
+    form_submission: @form_submission,
+    step_id: '<%= file_name %>'
+  ) %>
+  
+  Or you can implement a completely custom form:
+  
+  <%%= form_with model: @form_submission, url: form_submission_path(step_id: '<%= file_name %>'), method: :patch do |form| %>
+    <% parse_fields.each do |field| %>
+    <div class="mb-3">
+      <%%= form.label :<%= field[:name] %>, class: 'form-label' %>
+      <%%= form.<%= field[:type] %>_field :<%= field[:name] %>, value: @form_submission.step_values('<%= file_name %>')['<%= field[:name] %>'], class: 'form-control'<% if field[:required] %>, required: true<% end %> %>
+    </div>
+    <% end %>
+    
+    <div class="d-flex justify-content-between mt-4">
+      <% if @navigation_state[:can_move_previous] %>
+        <%%= form.submit 'Previous', name: 'commit', value: 'Previous', class: 'btn btn-outline-secondary' %>
+      <% end %>
+      
+      <% if @navigation_state[:can_move_next] %>
+        <%%= form.submit 'Next', name: 'commit', value: 'Next', class: 'btn btn-primary' %>
+      <% else %>
+        <%%= form.submit 'Save', name: 'commit', value: 'Save', class: 'btn btn-primary' %>
+      <% end %>
+    </div>
+  <%% end %>
+%>

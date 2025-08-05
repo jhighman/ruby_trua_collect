@@ -1,0 +1,114 @@
+<div class="form-wizard-step">
+  <h2><%= t('.title', default: 'Review Your Information') %></h2>
+  
+  <p class="step-description">
+    <%= t('.description', default: 'Please review your information before submitting.') %>
+  </p>
+  
+  <div class="form-wizard-review-summary">
+    <h3><%= t('.personal_info_heading', default: 'Personal Information') %></h3>
+    <div class="form-wizard-review-section">
+      <div class="form-wizard-review-item">
+        <div class="form-wizard-review-label"><%= t('.first_name_label', default: 'First Name') %></div>
+        <div class="form-wizard-review-value"><%= @form_submission.get_field_value(:first_name) %></div>
+      </div>
+      
+      <div class="form-wizard-review-item">
+        <div class="form-wizard-review-label"><%= t('.last_name_label', default: 'Last Name') %></div>
+        <div class="form-wizard-review-value"><%= @form_submission.get_field_value(:last_name) %></div>
+      </div>
+      
+      <% if @form_submission.get_field_value(:date_of_birth).present? %>
+        <div class="form-wizard-review-item">
+          <div class="form-wizard-review-label"><%= t('.date_of_birth_label', default: 'Date of Birth') %></div>
+          <div class="form-wizard-review-value"><%= @form_submission.get_field_value(:date_of_birth) %></div>
+        </div>
+      <% end %>
+    </div>
+    
+    <h3><%= t('.contact_details_heading', default: 'Contact Details') %></h3>
+    <div class="form-wizard-review-section">
+      <div class="form-wizard-review-item">
+        <div class="form-wizard-review-label"><%= t('.email_label', default: 'Email Address') %></div>
+        <div class="form-wizard-review-value"><%= @form_submission.get_field_value(:email) %></div>
+      </div>
+      
+      <% if @form_submission.get_field_value(:phone).present? %>
+        <div class="form-wizard-review-item">
+          <div class="form-wizard-review-label"><%= t('.phone_label', default: 'Phone Number') %></div>
+          <div class="form-wizard-review-value"><%= @form_submission.get_field_value(:phone) %></div>
+        </div>
+      <% end %>
+      
+      <div class="form-wizard-review-item">
+        <div class="form-wizard-review-label"><%= t('.preferred_contact_label', default: 'Preferred Contact Method') %></div>
+        <div class="form-wizard-review-value">
+          <% if @form_submission.get_field_value(:preferred_contact) == 'email' %>
+            <%= t('.preferred_contact_email', default: 'Email') %>
+          <% else %>
+            <%= t('.preferred_contact_phone', default: 'Phone') %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <%= form_with model: @form_submission, url: form_submission_path, method: :patch, local: true, class: 'form-wizard-form' do |f| %>
+    <% if @errors.present? %>
+      <div class="form-wizard-errors">
+        <ul>
+          <% @errors.each do |error| %>
+            <li><%= error %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    
+    <div class="form-wizard-fields">
+      <div class="form-group field-required checkbox-field">
+        <div class="form-check">
+          <%= f.check_box :terms_accepted, name: 'form_submission[terms_accepted]', id: 'form_submission_terms_accepted', class: 'form-check-input', value: '1', checked: @form_submission.get_field_value(:terms_accepted) == '1' %>
+          <%= f.label :terms_accepted, t('.terms_accepted_label', default: 'I confirm that the information provided is correct'), class: 'form-check-label' %>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-wizard-actions">
+      <% if @previous_step %>
+        <%= link_to t('form_wizard.common.back', default: 'Back'), form_submission_path(step: @previous_step), class: 'btn btn-secondary' %>
+      <% end %>
+      
+      <%= f.submit t('form_wizard.common.submit', default: 'Submit'), class: 'btn btn-primary' %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .form-wizard-review-summary {
+    margin-bottom: 30px;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 20px;
+    background-color: #f8f9fa;
+  }
+  
+  .form-wizard-review-section {
+    margin-bottom: 20px;
+  }
+  
+  .form-wizard-review-item {
+    display: flex;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 10px;
+  }
+  
+  .form-wizard-review-label {
+    font-weight: bold;
+    width: 200px;
+  }
+  
+  .form-wizard-review-value {
+    flex: 1;
+  }
+</style>

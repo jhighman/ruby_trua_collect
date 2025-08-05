@@ -1,0 +1,15 @@
+<div class="<%= css_classes %>">
+  <label for="<%= field_id %>">
+    <%= label %>
+  </label>
+  
+  <%= content %>
+  
+  <% if hint.present? %>
+    <div class="field-hint"><%= hint %></div>
+  <% end %>
+  
+  <% if error.present? %>
+    <div class="field-error"><%= error %></div>
+  <% end %>
+</div>

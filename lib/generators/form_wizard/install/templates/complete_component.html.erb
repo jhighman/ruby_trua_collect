@@ -1,0 +1,32 @@
+<div class="form-wizard-complete">
+  <div class="form-wizard-complete-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+    </svg>
+  </div>
+  
+  <h1 class="form-wizard-complete-title"><%= title %></h1>
+  <p class="form-wizard-complete-message"><%= message %></p>
+  
+  <div class="form-wizard-complete-summary">
+    <h2 class="form-wizard-complete-summary-title"><%= t('form_wizard.complete.summary_title', default: 'Summary') %></h2>
+    
+    <div class="form-wizard-complete-summary-content">
+      <% submission_data.each do |field_name, data| %>
+        <div class="form-wizard-complete-summary-item">
+          <div class="form-wizard-complete-summary-label"><%= data[:label] %></div>
+          <div class="form-wizard-complete-summary-value"><%= data[:value] %></div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <div class="form-wizard-complete-actions">
+    <%= link_to t('form_wizard.complete.start_over', default: 'Start Over'), form_submission_path, class: 'btn btn-primary', data: { method: :delete } %>
+    
+    <% if defined?(after_completion_path) && after_completion_path.present? %>
+      <%= link_to t('form_wizard.complete.continue', default: 'Continue'), after_completion_path, class: 'btn btn-secondary' %>
+    <% end %>
+  </div>
+</div>

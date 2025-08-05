@@ -1,0 +1,49 @@
+<div class="form-wizard">
+  <div class="form-wizard-header">
+    <h1 class="form-wizard-title"><%= step_title %></h1>
+    <p class="form-wizard-description"><%= step_description %></p>
+  </div>
+  
+  <div class="form-wizard-progress">
+    <div class="form-wizard-progress-bar">
+      <div class="form-wizard-progress-bar-fill" style="width: <%= progress_percentage %>%;"></div>
+    </div>
+    
+    <div class="form-wizard-progress-steps">
+      <% steps.each_with_index do |step_name, index| %>
+        <div class="form-wizard-progress-step <%= 'active' if step_name.to_s == step %> <%= 'completed' if step_completed?(step_name) %>">
+          <div class="form-wizard-progress-step-number"><%= index + 1 %></div>
+          <div class="form-wizard-progress-step-label"><%= t("form_wizard.steps.#{step_name}.short_title", default: step_name.to_s.humanize) %></div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <div class="form-wizard-step">
+    <%= form_with model: form_submission, url: form_submission_path, method: :patch, local: true, class: 'form-wizard-form' do |f| %>
+      <% if errors.present? %>
+        <div class="form-wizard-errors">
+          <ul>
+            <% errors.each do |error| %>
+              <li><%= error %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+      
+      <div class="form-wizard-fields">
+        <% @step_instance.fields.each do |field| %>
+          <%= render_field(field) %>
+        <% end %>
+      </div>
+      
+      <div class="form-wizard-actions">
+        <% if @previous_step %>
+          <%= link_to t('form_wizard.common.back'), form_submission_path(step: @previous_step), class: 'btn btn-secondary' %>
+        <% end %>
+        
+        <%= f.submit t('form_wizard.common.continue'), class: 'btn btn-primary' %>
+      </div>
+    <% end %>
+  </div>
+</div>
