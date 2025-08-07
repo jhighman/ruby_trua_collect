@@ -1,0 +1,83 @@
+<div class="container">
+  <h1>Audit Trail for Form Submission #<%= @form_submission.id %></h1>
+  
+  <div class="card mb-4">
+    <div class="card-header">
+      <h2>Form Details</h2>
+    </div>
+    <div class="card-body">
+      <p><strong>Created:</strong> <%= @form_submission.created_at.strftime('%B %d, %Y at %I:%M %p') %></p>
+      <p><strong>Last Updated:</strong> <%= @form_submission.updated_at.strftime('%B %d, %Y at %I:%M %p') %></p>
+      <p><strong>Current Step:</strong> <%= @form_submission.current_step_id %></p>
+      <p><strong>Status:</strong> <%= @form_submission.completed? ? 'Completed' : 'In Progress' %></p>
+    </div>
+  </div>
+  
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h2>Change History</h2>
+      
+      <div class="filters">
+        <% if @step_id.present? %>
+          <%= link_to "View All Steps", audit_trail_form_submission_path(@form_submission), class: "btn btn-sm btn-outline-primary" %>
+        <% else %>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              Filter by Step
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+              <% @form_submission.steps.keys.each do |step_id| %>
+                <li><%= link_to step_id.humanize, audit_trail_form_submission_path(@form_submission, step_id: step_id), class: "dropdown-item" %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    
+    <div class="card-body">
+      <% if @audit_logs.any? %>
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>Date/Time</th>
+                <th>Step</th>
+                <th>Field</th>
+                <th>Old Value</th>
+                <th>New Value</th>
+                <th>Changed By</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @audit_logs.each do |log| %>
+                <tr>
+                  <td><%= log.timestamp.strftime('%Y-%m-%d %H:%M:%S') %></td>
+                  <td><%= log.step_id.humanize %></td>
+                  <td><%= log.field.humanize %></td>
+                  <td><%= truncate(log.old_value, length: 50) %></td>
+                  <td><%= truncate(log.new_value, length: 50) %></td>
+                  <td><%= log.changed_by %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+        
+        <% if @audit_logs.total_pages > 1 %>
+          <div class="d-flex justify-content-center mt-4">
+            <%= paginate @audit_logs %>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="alert alert-info">
+          No audit logs found for this form submission.
+        </div>
+      <% end %>
+    </div>
+  </div>
+  
+  <div class="mt-4">
+    <%= link_to "Back to Form", form_submission_path(@form_submission), class: "btn btn-primary" %>
+  </div>
+</div>

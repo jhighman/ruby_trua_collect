@@ -1,0 +1,137 @@
+<%# Requirements checklist for accumulator steps %>
+<%# This partial renders a requirements checklist with progress bar %>
+<%# 
+  Required local variables:
+  - requirements: An array of hashes with the following keys:
+    - name: The name of the requirement
+    - met: Whether the requirement is met (true/false)
+    - error: Optional error message to display if the requirement is not met
+  - completion_percentage: The percentage of requirements that are met (0-100)
+%>
+
+<div class="requirements-panel">
+  <% if defined?(step_id) && step_id == 'residence_history' && defined?(years_covered) && defined?(required_years) %>
+    <h3>Step Requirements (<%= years_covered %> of <%= required_years %> years covered)</h3>
+    
+    <div class="requirement-info">
+      <p><strong>Important:</strong> Please provide your residence history for the past <%= required_years %> years. We need continuous coverage for this entire period to complete your verification.</p>
+      <p>You may include residences from earlier periods as well, but the past <%= required_years %> years must be fully covered.</p>
+    </div>
+    
+    <div class="timeline-container">
+      <div class="timeline-label">
+        <span class="timeline-start"><%= required_years %> years ago</span>
+        <span class="timeline-end">Present</span>
+      </div>
+      <div class="timeline-progress">
+        <div class="timeline-bar" style="width: <%= (years_covered / required_years * 100).to_i %>%;"
+             aria-valuenow="<%= years_covered %>" aria-valuemin="0" aria-valuemax="<%= required_years %>">
+          <%= years_covered %> years
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <h3>Step Requirements (<%= completion_percentage %>% Complete)</h3>
+    
+    <div class="progress">
+      <div class="progress-bar" role="progressbar" style="width: <%= completion_percentage %>%;"
+           aria-valuenow="<%= completion_percentage %>" aria-valuemin="0" aria-valuemax="100">
+        <%= completion_percentage %>%
+      </div>
+    </div>
+  <% end %>
+  <ul class="requirements-list">
+    <% requirements.each do |requirement| %>
+      <li class="<%= requirement[:met] ? 'completed' : 'incomplete' %>">
+        <span class="status-icon"><%= requirement[:met] ? '✓' : (requirement[:error].present? ? '✗' : '○') %></span>
+        <span class="requirement-text"><%= requirement[:name] %></span>
+        <% if requirement[:error].present? %>
+          <span class="error-detail"><%= requirement[:error] %></span>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+</div>
+
+<style>
+  .requirements-panel {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .requirement-info {
+    background-color: #e8f4f8;
+    border-left: 4px solid #17a2b8;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 0 4px 4px 0;
+  }
+  
+  .requirement-info p {
+    margin-bottom: 8px;
+  }
+  
+  .requirement-info p:last-child {
+    margin-bottom: 0;
+  }
+  
+  .requirements-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin-top: 10px;
+  }
+  
+  .requirements-list li {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .status-icon {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    margin-right: 8px;
+    font-weight: bold;
+  }
+  
+  .completed .status-icon {
+    color: #28a745;
+  }
+  
+  .incomplete .status-icon {
+    color: #dc3545;
+  }
+  
+  .requirement-text {
+    flex: 1;
+  }
+  
+  .error-detail {
+    color: #dc3545;
+    font-size: 0.9em;
+    margin-left: 32px;
+    display: block;
+  }
+  
+  .progress {
+    height: 20px;
+    margin-bottom: 15px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .progress-bar {
+    height: 100%;
+    background-color: #007bff;
+    color: white;
+    text-align: center;
+    line-height: 20px;
+    transition: width 0.6s ease;
+  }
+</style>

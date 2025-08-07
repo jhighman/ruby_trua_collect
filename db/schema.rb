@@ -10,7 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_04_190100) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_07_144500) do
+  create_table "audit_logs", force: :cascade do |t|
+    t.integer "form_submission_id", null: false
+    t.integer "user_id"
+    t.string "step_id", null: false
+    t.string "field", null: false
+    t.text "old_value"
+    t.text "new_value"
+    t.datetime "timestamp", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["form_submission_id", "step_id"], name: "index_audit_logs_on_form_submission_id_and_step_id"
+    t.index ["form_submission_id", "timestamp"], name: "index_audit_logs_on_form_submission_id_and_timestamp"
+    t.index ["form_submission_id"], name: "index_audit_logs_on_form_submission_id"
+    t.index ["user_id"], name: "index_audit_logs_on_user_id"
+  end
+
   create_table "claimants", force: :cascade do |t|
     t.integer "claim_id", null: false
     t.string "full_name"
@@ -111,6 +127,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_04_190100) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "requirements_config_id"
+    t.json "navigation_state", default: {}, null: false
+    t.datetime "last_active_at"
+    t.json "dynamic_steps", default: {}, null: false
+    t.json "workflows", default: {}, null: false
+    t.json "webhooks", default: [], null: false
+    t.json "api_keys", default: {}, null: false
+    t.json "oauth_tokens", default: {}, null: false
+    t.json "callbacks", default: {}, null: false
+    t.json "navigation_order", default: [], null: false
+    t.index ["last_active_at"], name: "index_form_submissions_on_last_active_at"
     t.index ["requirements_config_id"], name: "index_form_submissions_on_requirements_config_id"
     t.index ["session_id"], name: "index_form_submissions_on_session_id"
     t.index ["user_id"], name: "index_form_submissions_on_user_id"
@@ -210,6 +236,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_04_190100) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "audit_logs", "form_submissions"
+  add_foreign_key "audit_logs", "users"
   add_foreign_key "claimants", "claims"
   add_foreign_key "consents", "claims"
   add_foreign_key "education_entries", "educations"

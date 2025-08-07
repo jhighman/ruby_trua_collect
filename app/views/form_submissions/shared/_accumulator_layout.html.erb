@@ -1,0 +1,121 @@
+<%# Main layout for accumulator steps %>
+<%# This partial combines all accumulator components into a single layout %>
+<%# 
+  Required local variables:
+  - form_submission: The form submission object
+  - step_id: The ID of the current step
+  - navigation_state: The navigation state hash
+  - entries: An array of entry hashes
+  - requirements: An array of requirement hashes
+  - completion_percentage: The percentage of requirements that are met (0-100)
+  - entry_display_method: A method that renders an entry as HTML (optional)
+  - additional_fields_partial: A partial to render additional fields (optional)
+%>
+
+<div class="accumulator-step">
+  <h1><%= yield :title if content_for?(:title) %></h1>
+  
+  <%# Display errors if present %>
+  <% if defined?(@errors) && @errors.present? %>
+    <div class="errors">
+      <h3>Please correct the following errors:</h3>
+      <ul>
+        <% @errors.each do |field, message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+  
+  <%# Navigation buttons %>
+  <%= render partial: 'form_submissions/shared/accumulator_navigation', locals: {
+    form_submission: form_submission,
+    step_id: step_id,
+    navigation_state: navigation_state
+  } %>
+  
+  <%# Requirements checklist - only show if there are errors or entries exist %>
+  <%
+    # Get step values and entries
+    step_values = form_submission.step_values(step_id) || {}
+    entries = step_values['entries'] || []
+    
+    # Get step errors
+    step_errors = form_submission.step_errors(step_id) || {}
+    
+    # Debug
+    Rails.logger.debug "Step values: #{step_values.inspect}"
+    Rails.logger.debug "Entries: #{entries.inspect}"
+    Rails.logger.debug "Step errors: #{step_errors.inspect}"
+    
+    # Check if we should show requirements
+    show_requirements = false
+    
+    # Show if there are entries
+    show_requirements = true if entries.length > 0
+    
+    # We no longer show requirements just because there are errors
+    # This ensures requirements are hidden until the user adds entries
+    
+    Rails.logger.debug "Show requirements: #{show_requirements}"
+  %>
+  
+  <% if show_requirements %>
+    <%= render partial: 'form_submissions/shared/accumulator_requirements', locals: {
+      requirements: requirements,
+      completion_percentage: completion_percentage,
+      step_id: step_id,
+      years_covered: defined?(@years_covered) ? @years_covered : nil,
+      required_years: defined?(@required_years) ? @required_years : nil
+    } %>
+  <% end %>
+  
+  <%# Additional fields (if provided) %>
+  <% if defined?(additional_fields_partial) && additional_fields_partial.present? %>
+    <%= render partial: additional_fields_partial, locals: {
+      form_submission: form_submission,
+      step_id: step_id
+    } %>
+  <% end %>
+  
+  <%# Existing entries %>
+  <%= render partial: 'form_submissions/shared/accumulator_entries', locals: {
+    entries: entries,
+    form_submission: form_submission,
+    step_id: step_id,
+    entry_display_method: defined?(entry_display_method) ? entry_display_method : nil
+  } %>
+  
+  <%# Entry form %>
+  <%= render layout: 'form_submissions/shared/accumulator_form', locals: {
+    form_submission: form_submission,
+    step_id: step_id
+  } do |form| %>
+    <%= yield form %>
+  <% end %>
+</div>
+
+<style>
+  .accumulator-step {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .errors {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+  }
+  
+  .errors h3 {
+    margin-top: 0;
+    font-size: 18px;
+  }
+  
+  .errors ul {
+    margin-bottom: 0;
+  }
+</style>

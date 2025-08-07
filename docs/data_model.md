@@ -178,3 +178,8 @@ The collection key has the following structure:
 2. **en-EPA-DTB-R5-E5-E-P-W**: English, Full Collection with 5 years of history
 3. **en-EPA-N-N-EN2-N-N-W**: English, Personal Info, 2 Employers required, and Wet Signature
 4. **es-EPA-DTB-R5-E5-E-P-W**: Spanish, Full Collection with 5 years of history
+
+## Related Documentation
+
+- [Form Wizard Framework](./form_wizard.md) - Documentation for the multi-step form framework used to implement the verification process
+- [UI Specification](./UI_spec.md) - Detailed UI specifications for the Form Wizard

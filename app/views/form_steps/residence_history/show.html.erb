@@ -1,0 +1,77 @@
+<% content_for :title, "Residence History" %>
+
+<%= render layout: 'form_submissions/shared/accumulator_layout', locals: {
+  form_submission: @form_submission,
+  step_id: @step_id,
+  navigation_state: @navigation_state,
+  entries: @entries,
+  requirements: @requirements,
+  completion_percentage: @completion_percentage,
+  entry_display_method: lambda { |entry|
+    content_tag(:div) do
+      concat content_tag(:strong, "#{entry['address']}")
+      concat content_tag(:br)
+      concat "#{entry['city']}, #{entry['state']} #{entry['zip']}"
+      concat content_tag(:br)
+      concat "#{entry['start_date']} - #{entry['is_current'] ? 'Present' : entry['end_date']}"
+    end
+  }
+} do |form| %>
+  <div class="form-group">
+    <label for="form_submission_address">Address</label>
+    <%= form.text_field :address, class: 'form-control', required: true %>
+  </div>
+  
+  <div class="form-group">
+    <label for="form_submission_city">City</label>
+    <%= form.text_field :city, class: 'form-control', required: true %>
+  </div>
+  
+  <div class="form-group">
+    <label for="form_submission_state">State</label>
+    <%= form.text_field :state, class: 'form-control', required: true %>
+  </div>
+  
+  <div class="form-group">
+    <label for="form_submission_zip">ZIP Code</label>
+    <%= form.text_field :zip, class: 'form-control', required: true %>
+  </div>
+  
+  <div class="form-group">
+    <label for="form_submission_start_date">Start Date</label>
+    <%= form.date_field :start_date, class: 'form-control', required: true %>
+  </div>
+  
+  <div class="form-group">
+    <div class="checkbox">
+      <%= form.check_box :is_current, class: 'form-check-input' %>
+      <label for="form_submission_is_current">Currently living here</label>
+    </div>
+  </div>
+  
+  <div class="form-group" id="end_date_group">
+    <label for="form_submission_end_date">End Date</label>
+    <%= form.date_field :end_date, class: 'form-control' %>
+  </div>
+<% end %>
+
+<script>
+  // Simple script to show/hide end date based on is_current checkbox
+  document.addEventListener('DOMContentLoaded', function() {
+    var isCurrentCheckbox = document.getElementById('form_submission_is_current');
+    var endDateGroup = document.getElementById('end_date_group');
+    
+    function toggleEndDate() {
+      if (isCurrentCheckbox.checked) {
+        endDateGroup.style.display = 'none';
+      } else {
+        endDateGroup.style.display = 'block';
+      }
+    }
+    
+    if (isCurrentCheckbox) {
+      isCurrentCheckbox.addEventListener('change', toggleEndDate);
+      toggleEndDate(); // Initial state
+    }
+  });
+</script>

@@ -43,6 +43,10 @@ gem "thruster", require: false
 # Use Tailwind CSS for styling [https://github.com/rails/tailwindcss-rails]
 gem "tailwindcss-rails"
 
+# Use shadcn components for Rails [https://shadcn.rails-components.com/]
+gem "shadcn-ui"
+gem "tailwind_merge"
+
 # Use ViewComponent for building reusable view components [https://viewcomponent.org/]
 gem "view_component"
 

@@ -1,0 +1,24 @@
+<div class="save-resume-container mt-3 mb-3">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Need to take a break?</h5>
+      <p class="card-text">You can save your progress and come back later to complete the form.</p>
+      
+      <div class="d-flex justify-content-between">
+        <button type="submit" name="commit" value="Save and Exit" class="btn btn-outline-primary">
+          <i class="fas fa-save"></i> Save and Exit
+        </button>
+        
+        <% if @form_submission.navigation_state.present? %>
+          <div class="text-muted small">
+            Last saved: <%= time_ago_in_words(@form_submission.last_active_time) %> ago
+          </div>
+        <% end %>
+      </div>
+      
+      <div class="mt-2 small text-muted">
+        <i class="fas fa-info-circle"></i> Your progress is automatically saved as you complete each step.
+      </div>
+    </div>
+  </div>
+</div>

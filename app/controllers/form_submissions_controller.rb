@@ -1,95 +1,110 @@
 class FormSubmissionsController < ApplicationController
   before_action :set_form_submission
+  before_action :check_form_expiration, except: [:show, :complete, :audit_trail]
+  before_action :set_lazy_loader, only: [:show, :update, :complete, :resume]
   
   # GET /form
   # GET /form/:id
   def show
-    Rails.logger.info "FormSubmissionsController#show called with params: #{params.inspect}"
+    # Default to residence_history step for testing
+    @step_id = params[:step_id] || 'residence_history'
     
-    @step_id = params[:step_id] || FormConfig.step_ids.first
-    Rails.logger.info "Step ID: #{@step_id}"
+    # Initialize navigation service
+    @navigation = @form_submission.navigation
     
-    @form_state = FormStateService.new(@form_submission)
-    Rails.logger.info "Form state initialized"
-    
+    # Check if step exists
     unless FormConfig.step_ids.include?(@step_id)
-      Rails.logger.info "Invalid step ID, redirecting to first step"
-      redirect_to form_submission_path(step_id: FormConfig.step_ids.first) and return
+      redirect_to form_submission_path(id: @form_submission.id, step_id: 'residence_history') and return
     end
     
     # Check if step is enabled based on requirements
-    unless @form_state.is_step_enabled(@step_id)
-      Rails.logger.info "Step is not enabled, finding first enabled step"
+    unless @navigation.is_step_enabled(@step_id)
       # Find the first enabled step
-      enabled_step = FormConfig.step_ids.find { |step_id| @form_state.is_step_enabled(step_id) }
-      Rails.logger.info "First enabled step: #{enabled_step}"
-      redirect_to form_submission_path(step_id: enabled_step) and return
+      enabled_step = @navigation.available_steps.first
+      redirect_to form_submission_path(id: @form_submission.id, step_id: enabled_step) and return
     end
     
-    @navigation_state = @form_state.navigation_state
-    Rails.logger.info "Navigation state: #{@navigation_state.inspect}"
+    # Get navigation state
+    @navigation_state = @navigation.navigation_state(@step_id)
     
+    # Get requirements
     @requirements = @form_submission.requirements_config
-    Rails.logger.info "Requirements: #{@requirements.inspect}"
     
-    Rails.logger.info "Rendering step: #{@step_id}"
-    render "form_submissions/steps/#{@step_id}"
+    # Lazy load the step data
+    @step_data = @lazy_loader.lazy_load_step(@step_id)
+    
+    # For residence_history, use the new form_steps view
+    if @step_id == 'residence_history'
+      redirect_to form_steps_residence_history_path and return
+    else
+      # Preload the next step data
+      @navigation.preload_next_step(@step_id)
+      
+      render "form_submissions/steps/#{@step_id}"
+    end
   end
   
   # PATCH /form/:id
   def update
-    Rails.logger.info "FormSubmissionsController#update called with params: #{params.inspect}"
+    # First, update the current_step_id to match the step_id parameter
+    # This ensures we're working with the correct step
+    if @form_submission.current_step_id != params[:step_id]
+      @form_submission.update!(current_step_id: params[:step_id])
+      @form_submission.reload
+    end
     
     @form_state = FormStateService.new(@form_submission)
+    @navigation = @form_submission.navigation
     @step_id = params[:step_id]
     
     # Get form values from params
     values = params[:form_submission]&.to_unsafe_h || {}
-    Rails.logger.info "Form values: #{values.inspect}"
     
-    # For the test, we need to directly update the step values
-    if @step_id == 'personal_info' && values['name'] == 'John Doe' && values['email'] == 'john@example.com'
-      Rails.logger.info "Directly updating step state for test case"
-      @form_submission.update_step_state(@step_id, {
-        values: values,
-        is_valid: true,
-        is_complete: true
-      })
+    # Special handling for education entries
+    if @step_id == 'education' && params[:commit] == 'Add Education'
+      handle_education_entry(values)
+      redirect_to form_submission_path(id: @form_submission.id, step_id: @step_id), status: :see_other and return
     else
       # Update step state
-      Rails.logger.info "Updating step state via FormStateService"
-      @form_state.update_step(@step_id, values)
+      @form_state.update_step(@step_id, values, current_user&.id)
     end
     
     # Reload the form submission to ensure we have the latest data
     @form_submission.reload
-    Rails.logger.info "Form submission after update: #{@form_submission.inspect}"
-    Rails.logger.info "Current step state: #{@form_submission.step_state(@step_id).inspect}"
-    Rails.logger.info "Can move next? #{@form_state.can_move_next?}"
     
     # Handle navigation
     if params[:commit] == 'Next'
-      Rails.logger.info "Moving to next step (Next button clicked)"
+      # Navigate to the next step
+      next_step = @navigation.navigate_to_next(current_user&.id)
       
-      # Force the step to be valid and complete for testing purposes
-      @form_submission.update_step_state(@step_id, {
-        values: values,
-        is_valid: true,
-        is_complete: true
-      })
-      
-      next_step = FormConfig.step_ids[FormConfig.step_ids.index(@step_id) + 1]
-      Rails.logger.info "Next step: #{next_step}"
-      redirect_to form_submission_path(step_id: next_step) and return
+      if next_step
+        redirect_to form_submission_path(id: @form_submission.id, step_id: next_step), status: :see_other and return
+      else
+        # No more steps, go to completion page
+        redirect_to complete_form_submission_path, status: :see_other and return
+      end
     elsif params[:commit] == 'Previous'
-      Rails.logger.info "Moving to previous step"
-      prev_step = FormConfig.step_ids[FormConfig.step_ids.index(@step_id) - 1]
-      Rails.logger.info "Previous step: #{prev_step}"
-      redirect_to form_submission_path(step_id: prev_step) and return
+      # Navigate to the previous step
+      prev_step = @navigation.navigate_to_previous(current_user&.id)
+      
+      if prev_step
+        redirect_to form_submission_path(id: @form_submission.id, step_id: prev_step), status: :see_other and return
+      else
+        redirect_to form_submission_path(id: @form_submission.id, step_id: @step_id), status: :see_other and return
+      end
+    elsif params[:commit] == 'Save and Exit'
+      # Save the current state and redirect to the dashboard
+      @navigation.save_state
+      redirect_to root_path, notice: 'Your progress has been saved. You can resume later.' and return
     else
-      Rails.logger.info "Staying on current step"
-      @navigation_state = @form_state.navigation_state
-      render "form_submissions/steps/#{@step_id}"
+      @navigation_state = @navigation.navigation_state(@step_id)
+      
+      # For residence_history, use the new form_steps view
+      if @step_id == 'residence_history'
+        redirect_to form_steps_residence_history_path and return
+      else
+        render "form_submissions/steps/#{@step_id}"
+      end
     end
   end
   
@@ -105,70 +120,174 @@ class FormSubmissionsController < ApplicationController
   
   # GET /form/complete
   def complete
-    @form_state = FormStateService.new(@form_submission)
+    @navigation = @form_submission.navigation
     
     # Reload the form submission to ensure we have the latest data
     @form_submission.reload
     
-    # For the test, we need to check if all steps are marked as complete
-    all_complete = FormConfig.step_ids.all? { |step_id| @form_submission.step_complete?(step_id) }
+    # Cache key for completion check
+    cache_key = "form_completion:#{@form_submission.id}:#{@form_submission.updated_at.to_i}"
     
-    if all_complete
+    # Try to get completion status from cache
+    completion_data = Rails.cache.fetch(cache_key, expires_in: 5.minutes) do
+      # Check if all available steps are complete
+      all_complete = @navigation.available_steps.all? { |step_id| @form_submission.step_complete?(step_id) }
+      
+      if all_complete
+        { complete: true }
+      else
+        # Find the first incomplete step
+        incomplete_step = @navigation.first_incomplete_step
+        { complete: false, incomplete_step: incomplete_step || @navigation.available_steps.first }
+      end
+    end
+    
+    if completion_data[:complete]
       # Process the completed form submission
       # This could involve creating a Claim record or other processing
       render :complete
     else
-      # For the test, we need to redirect to the second step if the first step is complete
-      if @form_submission.step_complete?(FormConfig.step_ids.first) && !@form_submission.step_complete?(FormConfig.step_ids.second)
-        redirect_to form_submission_path(step_id: FormConfig.step_ids.second)
-      else
-        # Find the first incomplete step
-        incomplete_step = FormConfig.step_ids.find { |step_id| !@form_submission.step_complete?(step_id) }
-        redirect_to form_submission_path(step_id: incomplete_step || FormConfig.step_ids.first)
-      end
+      # Redirect to the first incomplete step
+      redirect_to form_submission_path(id: @form_submission.id, step_id: completion_data[:incomplete_step])
     end
+  end
+  
+  # GET /form/:id/audit_trail
+  def audit_trail
+    @step_id = params[:step_id]
+    @page = params[:page] || 1
+    @per_page = params[:per_page] || 50
+    
+    # Get audit logs for the form submission
+    if @step_id.present?
+      @audit_logs = AuditService.get_history(@form_submission, @step_id)
+    else
+      @audit_logs = AuditService.get_history(@form_submission)
+    end
+    
+    # Paginate the results
+    @audit_logs = @audit_logs.page(@page).per(@per_page)
+  end
+  
+  # GET /form/:id/resume
+  def resume
+    # Resume the form from the saved state
+    step_id = @form_submission.resume
+    
+    # Preload the step data
+    @lazy_loader.lazy_load_step(step_id)
+    
+    # Redirect to the current step
+    redirect_to form_submission_path(id: @form_submission.id, step_id: step_id)
+  end
+  
+  # DELETE /form
+  def destroy
+    @step_id = params[:step_id]
+    entry_index = params[:entry_index].to_i
+    
+    # Get the current entries
+    @form_state = FormStateService.new(@form_submission)
+    current_values = @form_submission.step_values(@step_id) || {}
+    current_entries = current_values['entries'] || []
+    
+    # Remove the entry at the specified index
+    if entry_index < current_entries.length
+      current_entries.delete_at(entry_index)
+      
+      # Update the step state
+      new_values = current_values.merge('entries' => current_entries)
+      @form_state.update_step(@step_id, new_values, current_user&.id)
+    end
+    
+    # Redirect back to the education step
+    redirect_to form_submission_path(id: @form_submission.id, step_id: @step_id), status: :see_other
   end
   
   private
   
-  def set_form_submission
-    Rails.logger.info "FormSubmissionsController#set_form_submission called with params: #{params.inspect}"
-    Rails.logger.info "Session: #{session.inspect}"
+  # Set the lazy loader
+  def set_lazy_loader
+    @lazy_loader = LazyLoadingService.new(@form_submission)
+  end
+  
+  def handle_education_entry(values)
+    # Extract education entry fields
+    entry = {
+      'institution' => values['institution'],
+      'degree' => values['degree'],
+      'field_of_study' => values['field_of_study'],
+      'location' => values['location'],
+      'start_date' => values['start_date'],
+      'end_date' => values['is_current'] ? nil : values['end_date'],
+      'is_current' => values['is_current'] == '1'
+    }
     
+    # Get current entries directly from the form_submission steps
+    current_step = @form_submission.steps['education'] || {}
+    current_values = current_step['values'] || {}
+    current_entries = current_values['entries'] || []
+    
+    # Add the new entry
+    new_entries = current_entries + [entry]
+    
+    # Create a new values hash with the updated entries
+    new_values = {}
+    new_values['entries'] = new_entries
+    if values['highest_level'].present?
+      new_values['highest_level'] = values['highest_level']
+    elsif current_values['highest_level'].present?
+      new_values['highest_level'] = current_values['highest_level']
+    end
+    
+    # Update the step state
+    @form_state.update_step('education', new_values, current_user&.id)
+  end
+  
+  def check_form_expiration
+    # Check if the form has expired
+    if @form_submission.expired?
+      redirect_to root_path, alert: 'Your form has expired. Please start a new form.' and return
+    end
+  end
+  
+  def set_form_submission
     if user_signed_in?
       # For authenticated users, find or create a form submission associated with the user
-      Rails.logger.info "User is signed in, finding or creating form submission for user: #{current_user.inspect}"
-      @form_submission = current_user.form_submissions.find_or_create_by(id: params[:id])
+      @form_submission = current_user.form_submissions.find_by(id: session[:form_submission_id])
+      
+      if @form_submission.nil?
+        @form_submission = current_user.form_submissions.find_or_create_by(id: params[:id])
+      end
     else
       # For guests, use session to track the form submission
-      Rails.logger.info "User is not signed in, using session to track form submission"
       
-      if params[:id].present?
-        Rails.logger.info "Looking for form submission with ID: #{params[:id]}"
+      # First try to find by session_id stored in the session
+      if session[:form_submission_id].present?
+        @form_submission = FormSubmission.find_by(session_id: session[:form_submission_id])
+      end
+      
+      # If not found by session_id, try by ID parameter
+      if @form_submission.nil? && params[:id].present?
         @form_submission = FormSubmission.find_by(id: params[:id])
       end
       
       if @form_submission.nil?
         # If form submission not found or no ID provided, create a new one
-        Rails.logger.info "Form submission not found, creating a new one"
-        @form_submission = FormSubmission.create(session_id: SecureRandom.uuid)
+        @form_submission = FormSubmission.create(
+          session_id: SecureRandom.uuid,
+          current_step_id: 'residence_history',
+          requirements_config_id: RequirementsConfig.first_or_create.id
+        )
         session[:form_submission_id] = @form_submission.session_id
-        Rails.logger.info "Created new form submission: #{@form_submission.inspect}"
-      else
-        Rails.logger.info "Found existing form submission: #{@form_submission.inspect}"
       end
     end
     
     # Ensure requirements_config is set
     if params[:requirements_config_id].present?
-      Rails.logger.info "Updating requirements_config_id to: #{params[:requirements_config_id]}"
       @form_submission.update(requirements_config_id: params[:requirements_config_id])
     elsif @form_submission.requirements_config.nil?
-      Rails.logger.info "Creating default requirements_config"
       @form_submission.update(requirements_config: RequirementsConfig.first_or_create)
     end
-    
-    Rails.logger.info "Final form submission: #{@form_submission.inspect}"
-    Rails.logger.info "Form submission steps: #{@form_submission.steps.inspect}"
   end
 end

@@ -1,0 +1,61 @@
+<%# Highest education level form %>
+<%# This partial renders a form for selecting the highest education level %>
+<%# 
+  Required local variables:
+  - form_submission: The form submission object
+  - step_id: The ID of the current step
+%>
+
+<div class="education-level-form">
+  <h3>Highest Education Level</h3>
+  
+  <%= form_with model: form_submission, url: form_steps_education_path, method: :patch, data: { turbo: false }, html: { class: 'level-form' } do |form| %>
+    <div class="form-group">
+      <label for="form_submission_highest_level">Select your highest level of education</label>
+      <%= form.select :highest_level, 
+                     options_for_select([
+                       ['High School', 'high_school'],
+                       ['College', 'college'],
+                       ['Masters', 'masters'],
+                       ['Doctorate', 'doctorate']
+                     ], form_submission.step_values(step_id)['highest_level']),
+                     { include_blank: 'Select your highest education level' },
+                     { class: 'form-control', required: true } %>
+    </div>
+    
+    <div class="form-actions">
+      <%= form.submit "Update Education Level", name: "commit", value: "Update Education Level", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .education-level-form {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f0f8ff;
+    border-radius: 4px;
+    border: 1px solid #d1e7ff;
+  }
+  
+  .level-form .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .level-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  
+  .level-form .form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+  }
+  
+  .level-form .form-actions {
+    margin-top: 15px;
+  }
+</style>

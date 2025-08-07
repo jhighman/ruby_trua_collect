@@ -1,0 +1,78 @@
+<%# Display existing entries for accumulator steps %>
+<%# This partial renders a list of existing entries with remove buttons %>
+<%# 
+  Required local variables:
+  - entries: An array of entry hashes
+  - form_submission: The form submission object
+  - step_id: The ID of the current step
+  - entry_display_method: A method that renders an entry as HTML (optional)
+%>
+
+<% if entries.any? %>
+  <div class="existing-entries">
+    <h3>Your Entries</h3>
+    <div class="entries-list">
+      <% entries.each_with_index do |entry, index| %>
+        <div class="entry-item">
+          <div class="entry-details">
+            <% if defined?(entry_display_method) && entry_display_method.respond_to?(:call) %>
+              <%= entry_display_method.call(entry) %>
+            <% else %>
+              <% entry.each do |key, value| %>
+                <% next if key.to_s == 'is_current' %>
+                <strong><%= key.to_s.humanize %>:</strong> <%= value %><br>
+              <% end %>
+            <% end %>
+          </div>
+          <div class="entry-actions">
+            <%= form_with url: form_submission_path(step_id: step_id), method: :delete, data: { turbo: false } do |form| %>
+              <%= form.hidden_field :entry_index, value: index %>
+              <%= form.submit "Remove", class: "btn btn-danger btn-sm" %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<style>
+  .existing-entries {
+    margin-bottom: 20px;
+  }
+  
+  .entries-list {
+    margin-bottom: 20px;
+  }
+  
+  .entry-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .entry-details {
+    flex: 1;
+  }
+  
+  .entry-actions {
+    margin-left: 10px;
+  }
+  
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .btn-danger:hover {
+    background-color: #c82333;
+  }
+</style>

@@ -75,6 +75,8 @@ class FormSubmissionsApiController < ApplicationController
   private
   
   def set_form_submission
+    Rails.logger.debug "API: Looking for form submission with ID: #{params[:id]}, session_id: #{session[:form_submission_id]}"
+    
     if user_signed_in?
       @form_submission = current_user.form_submissions.find_by(id: params[:id])
       
@@ -83,15 +85,26 @@ class FormSubmissionsApiController < ApplicationController
         @form_submission = current_user.form_submissions.create
       end
     else
-      @form_submission = FormSubmission.find_by(id: session[:form_submission_id])
+      # First try to find by session_id stored in the session
+      if session[:form_submission_id].present?
+        @form_submission = FormSubmission.find_by(session_id: session[:form_submission_id])
+      end
+      
+      # If not found by session_id, try by ID parameter
+      if @form_submission.nil? && params[:id].present?
+        @form_submission = FormSubmission.find_by(id: params[:id])
+      end
       
       # If form submission not found, create a new one
       if @form_submission.nil?
-        session[:form_submission_id] ||= SecureRandom.uuid
-        @form_submission = FormSubmission.create(session_id: session[:form_submission_id])
+        Rails.logger.debug "API: No form submission found, creating new one"
+        @form_submission = FormSubmission.create(
+          session_id: session[:form_submission_id] || SecureRandom.uuid,
+          current_step_id: 'personal_info',
+          requirements_config_id: RequirementsConfig.first.id
+        )
+        session[:form_submission_id] = @form_submission.session_id
       end
-      
-      session[:form_submission_id] = @form_submission.id
     end
   end
 end

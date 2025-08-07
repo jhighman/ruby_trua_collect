@@ -1,0 +1,42 @@
+<%# Navigation buttons for accumulator steps %>
+<%# This partial renders the Previous and Next buttons for accumulator steps %>
+<%# 
+  Required local variables:
+  - form_submission: The form submission object
+  - step_id: The ID of the current step
+  - navigation_state: The navigation state hash with can_move_next and can_move_previous
+%>
+
+<div class="navigation-buttons">
+  <%= form_with model: form_submission, url: form_submission_path(step_id: step_id), method: :patch, data: { turbo: false }, html: { class: 'navigation-form' } do |nav_form| %>
+    <div class="form-actions">
+      <% if navigation_state[:can_move_previous] %>
+        <%= nav_form.submit "Previous", name: "commit", value: "Previous", class: "btn btn-secondary" %>
+      <% end %>
+      
+      <% if navigation_state[:can_move_next] %>
+        <%= nav_form.submit "Next", name: "commit", value: "Next", class: "btn btn-primary" %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+  
+  .navigation-form {
+    width: 100%;
+  }
+  
+  .navigation-form .form-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+</style>

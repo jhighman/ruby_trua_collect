@@ -1,0 +1,7 @@
+<% if current_user&.admin? || Rails.env.development? %>
+  <div class="mt-3 mb-3">
+    <%= link_to audit_trail_form_submission_path(@form_submission), class: "btn btn-outline-secondary btn-sm" do %>
+      <i class="fas fa-history"></i> View Audit Trail
+    <% end %>
+  </div>
+<% end %>

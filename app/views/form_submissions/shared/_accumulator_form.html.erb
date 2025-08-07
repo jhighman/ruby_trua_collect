@@ -1,0 +1,82 @@
+<%# Form for adding entries to accumulator steps %>
+<%# This partial renders a form for adding new entries %>
+<%#
+  Required local variables:
+  - form_submission: The form submission object
+  - step_id: The ID of the current step
+  - form_fields: A block that renders the form fields
+  - form_url: The URL to submit the form to (optional, defaults to form_steps_path based on step_id)
+%>
+
+<div class="accumulator-form">
+  <h3>Add New Entry</h3>
+  
+  <%
+    # Determine the form URL based on the step_id
+    url = local_assigns[:form_url] ||
+          case step_id
+          when 'education'
+            form_steps_education_path
+          when 'residence_history'
+            form_steps_residence_history_path
+          else
+            form_submission_path(step_id: step_id)
+          end
+  %>
+  
+  <%= form_with model: form_submission, url: url, method: :patch, data: { turbo: false }, html: { class: 'entry-form' } do |form| %>
+    <%= yield form %>
+    
+    <div class="form-actions">
+      <%= form.submit "Add Entry", name: "commit", value: "Add Entry", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .accumulator-form {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    border: 1px solid #e9e9e9;
+  }
+  
+  .entry-form .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .entry-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+  
+  .entry-form .form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+  }
+  
+  .entry-form .checkbox {
+    margin-top: 10px;
+  }
+  
+  .entry-form .form-actions {
+    margin-top: 20px;
+  }
+  
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .btn-primary:hover {
+    background-color: #0069d9;
+  }
+</style>

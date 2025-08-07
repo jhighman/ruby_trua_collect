@@ -1,0 +1,47 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card mt-5">
+        <div class="card-header bg-primary text-white">
+          <h2 class="mb-0">Resume Your Form</h2>
+        </div>
+        
+        <div class="card-body">
+          <h3>Welcome back!</h3>
+          
+          <p>You have a form in progress. Would you like to continue where you left off?</p>
+          
+          <div class="form-details mt-4 mb-4">
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong>Started:</strong> <%= @form_submission.created_at.strftime('%B %d, %Y') %></p>
+                <p><strong>Last active:</strong> <%= @form_submission.last_active_time.strftime('%B %d, %Y at %I:%M %p') %></p>
+              </div>
+              
+              <div class="col-md-6">
+                <p><strong>Current step:</strong> <%= @form_submission.current_step_id.humanize %></p>
+                <p><strong>Progress:</strong> <%= @form_submission.navigation.completion_percentage %>% complete</p>
+              </div>
+            </div>
+            
+            <div class="progress mt-3">
+              <div class="progress-bar" role="progressbar" style="width: <%= @form_submission.navigation.completion_percentage %>%;" 
+                   aria-valuenow="<%= @form_submission.navigation.completion_percentage %>" aria-valuemin="0" aria-valuemax="100">
+                <%= @form_submission.navigation.completion_percentage %>%
+              </div>
+            </div>
+          </div>
+          
+          <div class="d-flex justify-content-between mt-4">
+            <%= link_to "Continue Form", form_submission_path(@form_submission, step_id: @form_submission.current_step_id), 
+                        class: "btn btn-primary btn-lg" %>
+            
+            <%= link_to "Start New Form", root_path(new: true), 
+                        class: "btn btn-outline-secondary", 
+                        data: { confirm: "Are you sure? Your current progress will not be lost, but a new form will be started." } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
