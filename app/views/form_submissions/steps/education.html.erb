@@ -1,81 +1,178 @@
-<%= render layout: 'form_submissions/form', locals: { step_title: 'Education History' } do |form| %>
-  <div class="mb-4">
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <%= form.label :highest_level, 'Highest Education Level', class: 'form-label' %>
-        <%= form.select :highest_level, 
-                        options_for_select([
-                          ['High School', 'high_school'],
-                          ['College/University', 'college'],
-                          ['Master\'s Degree', 'masters'],
-                          ['Doctorate', 'doctorate']
-                        ], @form_submission.step_values(@step_id)['highest_level']),
-                        { include_blank: 'Select your highest education level' },
-                        { class: 'form-select', required: true, data: { form_target: 'field', action: 'change->form#toggleEducationEntries' } } %>
-      </div>
-    </div>
+<% content_for :layout do %>
+  <%= render template: 'layouts/form_submission' %>
+<% end %>
+
+<%= render layout: 'form_submissions/form', locals: { step_title: 'Education Information' } do |form| %>
+  <div class="space-y-6">
+    <%
+      values = @form_submission.step_values('education') || {}
+      entries = values['entries'] || []
+      errors = @form_submission.step_errors('education') || {}
+      highest_level = values['highest_level']
+      
+      # Define requirements
+      has_highest_level = highest_level.present?
+      has_entries = entries.any?
+      has_valid_dates = !errors['timeline'].present?
+      
+      # Calculate completion percentage
+      total_requirements = 3
+      completed_requirements = 0
+      completed_requirements += 1 if has_highest_level
+      completed_requirements += 1 if has_entries
+      completed_requirements += 1 if has_valid_dates
+      completion_percentage = (completed_requirements.to_f / total_requirements * 100).to_i
+      
+      requirements = [
+        { name: "Select your highest education level", met: has_highest_level },
+        { name: "Add at least one education entry", met: has_entries },
+        { name: "Ensure all dates are valid", met: has_valid_dates, error: errors['timeline'] }
+      ]
+    %>
     
-    <div id="education-entries" class="<%= @form_submission.step_values(@step_id)['highest_level'].in?(['college', 'masters', 'doctorate']) ? '' : 'd-none' %>">
-      <p>Please provide details about your education history.</p>
-      
-      <div data-form-target="timelineEntries" class="mb-4">
-        <!-- Timeline entries will be dynamically rendered here by the FormController -->
-      </div>
-      
-      <div class="card">
-        <div class="card-header">
-          <h5 class="mb-0">Add Education</h5>
-        </div>
-        <div class="card-body">
-          <%= form_with url: '#', html: { data: { action: 'submit->form#addTimelineEntry' } } do |entry_form| %>
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <%= entry_form.label :institution, class: 'form-label' %>
-                <%= entry_form.text_field 'entry[institution]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+    <%= render partial: 'form_submissions/shared/accumulator_requirements', locals: {
+      requirements: requirements,
+      completion_percentage: completion_percentage
+    } %>
+    
+    <% if entries.any? %>
+      <%= render_card title: "Your Education History", class: "w-full mb-6" do %>
+        <div class="space-y-4">
+          <% entries.each_with_index do |entry, index| %>
+            <div class="flex justify-between items-center p-4 border border-border rounded-md">
+              <div class="flex-1">
+                <div class="font-medium"><%= entry['institution'] %></div>
+                <% if entry['degree'].present? %>
+                  <div class="text-sm text-muted-foreground">
+                    <%= entry['degree'] %>
+                    <% if entry['field_of_study'].present? %>
+                      in <%= entry['field_of_study'] %>
+                    <% end %>
+                  </div>
+                <% end %>
+                <div class="text-sm text-muted-foreground">
+                  <%= entry['start_date'] %> - <%= entry['is_current'] ? 'Present' : entry['end_date'] %>
+                  <% if entry['location'].present? %>
+                    (<%= entry['location'] %>)
+                  <% end %>
+                </div>
               </div>
-              <div class="col-md-6">
-                <%= entry_form.label :degree, class: 'form-label' %>
-                <%= entry_form.text_field 'entry[degree]', class: 'form-control', required: true, data: { form_target: 'field' } %>
+              <div>
+                <%= form_with url: form_submission_path(step_id: @step_id), method: :delete, data: { turbo: false } do |remove_form| %>
+                  <%= remove_form.hidden_field :entry_index, value: index %>
+                  <%= render_button "Remove", as: :submit, variant: :destructive, class: "text-xs" %>
+                <% end %>
               </div>
-            </div>
-            
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <%= entry_form.label :field_of_study, class: 'form-label' %>
-                <%= entry_form.text_field 'entry[field_of_study]', class: 'form-control', required: true, data: { form_target: 'field' } %>
-              </div>
-              <div class="col-md-6">
-                <%= entry_form.label :location, class: 'form-label' %>
-                <%= entry_form.text_field 'entry[location]', class: 'form-control', required: true, data: { form_target: 'field' } %>
-              </div>
-            </div>
-            
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <%= entry_form.label :start_date, class: 'form-label' %>
-                <%= entry_form.date_field 'entry[start_date]', class: 'form-control', required: true, data: { form_target: 'field' } %>
-              </div>
-              <div class="col-md-6">
-                <%= entry_form.label :end_date, class: 'form-label' %>
-                <%= entry_form.date_field 'entry[end_date]', class: 'form-control', required: true, data: { form_target: 'field' } %>
-              </div>
-            </div>
-            
-            <div class="form-check mb-3">
-              <%= entry_form.check_box 'entry[is_current]', class: 'form-check-input', data: { action: 'change->form#toggleEndDate', form_target: 'field' } %>
-              <%= entry_form.label 'entry[is_current]', 'I am currently studying here', class: 'form-check-label' %>
-            </div>
-            
-            <div class="d-grid">
-              <%= entry_form.submit 'Add Education', class: 'btn btn-primary' %>
             </div>
           <% end %>
         </div>
-      </div>
-    </div>
+      <% end %>
+    <% end %>
+    
+    <%= render_card title: "Highest Education Level", class: "w-full mb-6" do %>
+      <%= form_with model: @form_submission, url: form_submission_path(step_id: @step_id), method: :patch, data: { turbo: false }, class: "space-y-4" do |level_form| %>
+        <div class="space-y-2">
+          <%= render_label name: :highest_level, label: 'Select your highest education level' %>
+          <select name="form_submission[highest_level]" id="form_submission_highest_level" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" required>
+            <option value="" <%= values['highest_level'].blank? ? 'selected' : '' %>>Select your highest education level</option>
+            <option value="high_school" <%= values['highest_level'] == 'high_school' ? 'selected' : '' %>>High School</option>
+            <option value="college" <%= values['highest_level'] == 'college' ? 'selected' : '' %>>College</option>
+            <option value="masters" <%= values['highest_level'] == 'masters' ? 'selected' : '' %>>Masters</option>
+            <option value="doctorate" <%= values['highest_level'] == 'doctorate' ? 'selected' : '' %>>Doctorate</option>
+          </select>
+        </div>
+        
+        <div class="flex justify-end">
+          <%= render_button "Update Education Level", as: :submit, name: "commit", value: "Update Education Level" %>
+        </div>
+      <% end %>
+    <% end %>
+    
+    <%= render_card title: "Add Education Entry", class: "w-full" do %>
+      <%= form_with model: @form_submission, url: form_submission_path(step_id: @step_id), method: :patch, data: { turbo: false }, class: "space-y-4" do |entry_form| %>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <%= render_label name: :institution, label: 'Institution' %>
+            <%= render_input name: :institution, required: true %>
+          </div>
+          
+          <div class="space-y-2">
+            <%= render_label name: :degree, label: 'Degree' %>
+            <%= render_input name: :degree %>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <%= render_label name: :field_of_study, label: 'Field of Study' %>
+            <%= render_input name: :field_of_study %>
+          </div>
+          
+          <div class="space-y-2">
+            <%= render_label name: :location, label: 'Location' %>
+            <%= render_input name: :location %>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <%= render_label name: :start_date, label: 'Start Date' %>
+            <%= render_input name: :start_date, type: :date, required: true %>
+          </div>
+          
+          <div class="space-y-2" id="end_date_group">
+            <%= render_label name: :end_date, label: 'End Date' %>
+            <%= render_input name: :end_date, type: :date %>
+          </div>
+        </div>
+        
+        <div class="flex items-start space-x-2 mb-4">
+          <%= entry_form.check_box :is_current,
+                                 id: 'form_submission_is_current',
+                                 class: 'h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary' %>
+          <%= entry_form.label :is_current, 'Currently attending',
+                             class: 'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70' %>
+        </div>
+        
+        <div class="flex justify-end">
+          <%= render_button "Add Education", as: :submit, name: "commit", value: "Add Education" %>
+        </div>
+      <% end %>
+    <% end %>
   </div>
   
-  <div data-form-target="navigation" class="d-flex justify-content-between mt-4">
+  <div data-form-target="navigation" class="flex justify-between mt-6">
     <!-- Navigation buttons will be dynamically rendered here by the FormController -->
   </div>
+  
+  <div class="flex justify-between mt-6">
+    <% if @navigation_state[:can_move_previous] %>
+      <%= render_button "Previous", as: :submit, name: "commit", value: "Previous", variant: :outline %>
+    <% end %>
+    
+    <% if @navigation_state[:can_move_next] %>
+      <%= render_button "Next", as: :submit, name: "commit", value: "Next" %>
+    <% end %>
+  </div>
 <% end %>
+
+<script>
+  // Simple script to show/hide end date based on is_current checkbox
+  document.addEventListener('DOMContentLoaded', function() {
+    var isCurrentCheckbox = document.getElementById('form_submission_is_current');
+    var endDateGroup = document.getElementById('end_date_group');
+    
+    function toggleEndDate() {
+      if (isCurrentCheckbox.checked) {
+        endDateGroup.style.display = 'none';
+      } else {
+        endDateGroup.style.display = 'block';
+      }
+    }
+    
+    if (isCurrentCheckbox) {
+      isCurrentCheckbox.addEventListener('change', toggleEndDate);
+      toggleEndDate(); // Initial state
+    }
+  });
+</script>
