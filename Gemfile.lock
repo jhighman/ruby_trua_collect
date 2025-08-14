@@ -303,7 +303,7 @@ GEM
     shoulda-matchers (6.5.0)
       activesupport (>= 5.2.0)
     sin_lru_redux (2.5.2)
-    solid_cable (3.0.11)
+    solid_cable (3.0.12)
       actioncable (>= 7.2)
       activejob (>= 7.2)
       activerecord (>= 7.2)
