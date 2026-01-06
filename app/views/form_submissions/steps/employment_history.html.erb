@@ -1,0 +1,94 @@
+<%= render layout: 'form_submissions/form', locals: { step_title: 'Employment History' } do |form| %>
+  <div class="space-y-4">
+    <p class="text-sm text-muted-foreground">Please provide your employment history for the past <%= @requirements.employment_history_years %> years.</p>
+    
+    <div data-form-target="timelineEntries" class="mb-4">
+      <!-- Timeline entries will be dynamically rendered here by the FormController -->
+    </div>
+    
+    <%= render_card title: "Add New Employment", class: "w-full" do %>
+      <%= form_with url: '#', html: { data: { action: 'submit->form#addTimelineEntry' } } do |entry_form| %>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div class="space-y-2">
+            <%= render_label name: 'entry[start_date]', label: 'Start Date' %>
+            <%= render_input name: 'entry[start_date]',
+                           type: :date,
+                           required: true,
+                           data: { form_target: 'field' } %>
+          </div>
+          <div class="space-y-2">
+            <%= render_label name: 'entry[end_date]', label: 'End Date' %>
+            <%= render_input name: 'entry[end_date]',
+                           type: :date,
+                           required: true,
+                           data: { form_target: 'field' } %>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div class="space-y-2">
+            <%= render_label name: 'entry[company]', label: 'Company' %>
+            <%= render_input name: 'entry[company]',
+                           required: true,
+                           data: { form_target: 'field' } %>
+          </div>
+          <div class="space-y-2">
+            <%= render_label name: 'entry[position]', label: 'Position' %>
+            <%= render_input name: 'entry[position]',
+                           required: true,
+                           data: { form_target: 'field' } %>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div class="space-y-2">
+            <%= render_label name: 'entry[city]', label: 'City' %>
+            <%= render_input name: 'entry[city]',
+                           required: true,
+                           data: { form_target: 'field' } %>
+          </div>
+          <div class="space-y-2">
+            <%= render_label name: 'entry[state_province]', label: 'State/Province' %>
+            <%= render_input name: 'entry[state_province]',
+                           required: true,
+                           data: { form_target: 'field' } %>
+          </div>
+          <div class="space-y-2">
+            <%= render_label name: 'entry[country]', label: 'Country' %>
+            <%= render_input name: 'entry[country]',
+                           required: true,
+                           data: { form_target: 'field' } %>
+          </div>
+        </div>
+        
+        <div class="space-y-2 mb-4">
+          <%= render_label name: 'entry[description]', label: 'Job Description' %>
+          <%= render_input name: 'entry[description]',
+                         type: :textarea,
+                         required: false,
+                         data: { form_target: 'field' } %>
+        </div>
+        
+        <div class="flex items-start space-x-2 mb-4">
+          <%= entry_form.check_box 'entry[is_current]',
+                                 class: 'h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary',
+                                 data: { action: 'change->form#toggleEndDate', form_target: 'field' } %>
+          <%= entry_form.label 'entry[is_current]', 'This is my current employer',
+                             class: 'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70' %>
+        </div>
+        
+        <div class="flex justify-end">
+          <%= render_button 'Add Employment', as: :submit %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+  
+  <div data-form-target="navigation" class="flex justify-between mt-6">
+    <!-- Navigation buttons will be dynamically rendered here by the FormController -->
+  </div>
+  
+  <div class="flex justify-end mt-6">
+    <%= render_button 'Next', as: :submit, name: 'commit', value: 'Next' %>
+  </div>
+<% end %>
