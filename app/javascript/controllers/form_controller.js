@@ -21,6 +21,39 @@ export default class extends Controller {
     
     this.validateOnInput()
     this.fetchFormState()
+    
+    // Initialize toggle states
+    this.initializeToggles()
+  }
+  
+  initializeToggles() {
+    // Initialize current employer toggle
+    const isCurrentCheckbox = this.element.querySelector('input[name="entry[is_current]"]')
+    if (isCurrentCheckbox) {
+      const endDateContainer = document.getElementById("end-date-container")
+      if (endDateContainer && isCurrentCheckbox.checked) {
+        endDateContainer.style.display = "none"
+        const endDateField = endDateContainer.querySelector("input")
+        if (endDateField) {
+          endDateField.disabled = true
+          endDateField.required = false
+        }
+      }
+    }
+    
+    // Initialize no contact toggle
+    const noContactCheckbox = this.element.querySelector('input[name="entry[no_contact]"]')
+    if (noContactCheckbox) {
+      const contactFieldsContainer = document.getElementById("contact-fields-container")
+      if (contactFieldsContainer && noContactCheckbox.checked) {
+        contactFieldsContainer.style.display = "none"
+        const contactFields = contactFieldsContainer.querySelectorAll("input")
+        contactFields.forEach(field => {
+          field.disabled = true
+          field.required = false
+        })
+      }
+    }
   }
 
   validateOnInput() {
@@ -239,29 +272,47 @@ export default class extends Controller {
     let html = ''
     entriesData.forEach((entry, index) => {
       html += `
-        <div class="timeline-entry card mb-3">
-          <div class="card-body">
-            <div class="d-flex justify-content-between">
-              <h5 class="card-title">${entry.title || 'Entry ' + (index + 1)}</h5>
-              <button type="button" class="btn btn-sm btn-danger"
-                data-action="click->form#removeTimelineEntry"
-                data-index="${index}">Remove</button>
+        <div class="timeline-entry mb-3 border rounded p-4 bg-white">
+          <div class="flex justify-between">
+            <h5 class="font-medium">${entry.company || ''} - ${entry.position || ''}</h5>
+            <a href="/form/${this.formIdValue}?step_id=${this.stepIdValue}&entry_index=${index}"
+               data-method="delete"
+               data-confirm="Are you sure you want to remove this employment entry?"
+               class="text-red-600 hover:text-red-800">Remove</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+            <div>
+              <p class="text-sm text-muted-foreground">Start Date</p>
+              <p>${entry.start_date || ''}</p>
             </div>
-            <div class="row">
-              <div class="col-md-5">
-                <label>Start Date</label>
-                <p>${entry.start_date || ''}</p>
-              </div>
-              <div class="col-md-5">
-                <label>End Date</label>
-                <p>${entry.is_current ? 'Current' : (entry.end_date || '')}</p>
-              </div>
-              <div class="col-md-2">
-                <label>Current?</label>
-                <p>${entry.is_current ? 'Yes' : 'No'}</p>
-              </div>
+            <div>
+              <p class="text-sm text-muted-foreground">End Date</p>
+              <p>${entry.is_current ? 'Current' : (entry.end_date || '')}</p>
             </div>
           </div>
+          <div class="mt-2">
+            <p class="text-sm text-muted-foreground">Location</p>
+            <p>${entry.city || ''}, ${entry.state_province || ''}, ${entry.country || ''}</p>
+          </div>
+          ${entry.description ? `
+            <div class="mt-2">
+              <p class="text-sm text-muted-foreground">Description</p>
+              <p>${entry.description}</p>
+            </div>
+          ` : ''}
+          ${entry.contact_name || entry.contact_email || entry.contact_phone ? `
+            <div class="mt-2 pt-2 border-t">
+              <p class="text-sm text-muted-foreground font-medium">Contact Information</p>
+              ${entry.contact_name ? `<p class="mb-1"><span class="font-medium">Name:</span> ${entry.contact_name}</p>` : ''}
+              ${entry.contact_email ? `<p class="mb-1"><span class="font-medium">Email:</span> ${entry.contact_email}</p>` : ''}
+              ${entry.contact_phone ? `<p class="mb-1"><span class="font-medium">Phone:</span> ${entry.contact_phone}</p>` : ''}
+            </div>
+          ` : entry.no_contact ? `
+            <div class="mt-2 pt-2 border-t">
+              <p class="text-sm text-muted-foreground font-medium">Contact Information</p>
+              <p class="italic text-gray-500">No contact information available</p>
+            </div>
+          ` : ''}
         </div>
       `
     })
@@ -341,11 +392,51 @@ export default class extends Controller {
 
   toggleEndDate(event) {
     const isCurrentCheckbox = event.target
-    const endDateField = isCurrentCheckbox.closest(".row").querySelector("input[name$='[end_date]']")
+    const endDateContainer = document.getElementById("end-date-container")
     
-    if (endDateField) {
-      endDateField.disabled = isCurrentCheckbox.checked
-      endDateField.required = !isCurrentCheckbox.checked
+    if (endDateContainer) {
+      if (isCurrentCheckbox.checked) {
+        endDateContainer.style.display = "none"
+        const endDateField = endDateContainer.querySelector("input")
+        if (endDateField) {
+          endDateField.disabled = true
+          endDateField.required = false
+        }
+      } else {
+        endDateContainer.style.display = "block"
+        const endDateField = endDateContainer.querySelector("input")
+        if (endDateField) {
+          endDateField.disabled = false
+          endDateField.required = true
+        }
+      }
+    }
+  }
+  
+  toggleContactFields(event) {
+    const noContactCheckbox = event.target
+    const contactFieldsContainer = document.getElementById("contact-fields-container")
+    
+    if (contactFieldsContainer) {
+      if (noContactCheckbox.checked) {
+        contactFieldsContainer.style.display = "none"
+        
+        // Disable required validation for contact fields
+        const contactFields = contactFieldsContainer.querySelectorAll("input")
+        contactFields.forEach(field => {
+          field.disabled = true
+          field.required = false
+        })
+      } else {
+        contactFieldsContainer.style.display = "grid"
+        
+        // Re-enable fields but don't make them required individually
+        // We'll validate that at least one is filled in the server-side validation
+        const contactFields = contactFieldsContainer.querySelectorAll("input")
+        contactFields.forEach(field => {
+          field.disabled = false
+        })
+      }
     }
   }
 }

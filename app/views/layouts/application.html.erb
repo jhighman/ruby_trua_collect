@@ -19,7 +19,55 @@
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    
+    <!-- Load fallbacks first to ensure they're available -->
+    <script src="/assets/fallbacks.js" type="text/javascript"></script>
+    
+    <!-- Add polyfill for ES modules -->
+    <script async src="https://ga.jspm.io/npm:es-module-shims@1.7.3/dist/es-module-shims.js"
+            crossorigin="anonymous"></script>
+    
+    <!-- Use importmap with proper type attribute -->
     <%= javascript_importmap_tags %>
+    
+    <!-- Load application script -->
+    <script src="/assets/application.js" type="text/javascript"></script>
+    
+    <!-- Fallback scripts for UI components -->
+    <script>
+      // Ensure UI components are available
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.UI === 'undefined') {
+          console.info('Using fallback UI components');
+          window.UI = {
+            Button: {
+              render: function(props) {
+                const btn = document.createElement('button');
+                btn.className = props.className || 'btn btn-primary';
+                btn.textContent = props.text || '';
+                if (props.onClick) btn.addEventListener('click', props.onClick);
+                return btn;
+              }
+            },
+            Form: {
+              render: function(props) {
+                const form = document.createElement('form');
+                form.className = props.className || '';
+                if (props.onSubmit) form.addEventListener('submit', props.onSubmit);
+                return form;
+              }
+            },
+            Timeline: {
+              render: function(props) {
+                const container = document.createElement('div');
+                container.className = 'timeline ' + (props.className || '');
+                return container;
+              }
+            }
+          };
+        }
+      });
+    </script>
   </head>
 
   <body>

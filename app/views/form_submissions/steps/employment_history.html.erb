@@ -4,25 +4,50 @@
     
     <div data-form-target="timelineEntries" class="mb-4">
       <!-- Timeline entries will be dynamically rendered here by the FormController -->
+      <% if @step_data && @step_data['values'] && @step_data['values']['entries'] && @step_data['values']['entries'].any? %>
+        <% @step_data['values']['entries'].each_with_index do |entry, index| %>
+          <div class="timeline-entry mb-3 border rounded p-4 bg-white">
+            <div class="flex justify-between">
+              <h5 class="font-medium"><%= entry['company'] %> - <%= entry['position'] %></h5>
+              <a href="<%= form_submission_path(id: @form_submission.id, step_id: @step_id, entry_index: index) %>"
+                 data-method="delete"
+                 data-confirm="Are you sure you want to remove this employment entry?"
+                 class="text-red-600 hover:text-red-800">Remove</a>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              <div>
+                <p class="text-sm text-muted-foreground">Start Date</p>
+                <p><%= entry['start_date'] %></p>
+              </div>
+              <div>
+                <p class="text-sm text-muted-foreground">End Date</p>
+                <p><%= entry['is_current'] ? 'Current' : entry['end_date'] %></p>
+              </div>
+            </div>
+            <div class="mt-2">
+              <p class="text-sm text-muted-foreground">Location</p>
+              <p><%= entry['city'] %>, <%= entry['state_province'] %>, <%= entry['country'] %></p>
+            </div>
+            <% if entry['description'].present? %>
+              <div class="mt-2">
+                <p class="text-sm text-muted-foreground">Description</p>
+                <p><%= entry['description'] %></p>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
     </div>
     
     <%= render_card title: "Add New Employment", class: "w-full" do %>
-      <%= form_with url: '#', html: { data: { action: 'submit->form#addTimelineEntry' } } do |entry_form| %>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div class="space-y-2">
-            <%= render_label name: 'entry[start_date]', label: 'Start Date' %>
-            <%= render_input name: 'entry[start_date]',
-                           type: :date,
-                           required: true,
-                           data: { form_target: 'field' } %>
-          </div>
-          <div class="space-y-2">
-            <%= render_label name: 'entry[end_date]', label: 'End Date' %>
-            <%= render_input name: 'entry[end_date]',
-                           type: :date,
-                           required: true,
-                           data: { form_target: 'field' } %>
-          </div>
+      <%= form_with url: form_submission_path(id: @form_submission.id, step_id: @step_id), method: :patch, html: { data: { action: 'submit->form#addTimelineEntry' } }, authenticity_token: true do |entry_form| %>
+        <!-- Current employer toggle moved to the top -->
+        <div class="flex items-start space-x-2 mb-6 p-3 bg-gray-50 rounded-md border border-gray-200">
+          <%= entry_form.check_box 'entry[is_current]',
+                                 class: 'h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary',
+                                 data: { action: 'change->form#toggleEndDate', form_target: 'field' } %>
+          <%= entry_form.label 'entry[is_current]', 'This is my current employer',
+                             class: 'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70' %>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -35,6 +60,23 @@
           <div class="space-y-2">
             <%= render_label name: 'entry[position]', label: 'Position' %>
             <%= render_input name: 'entry[position]',
+                           required: true,
+                           data: { form_target: 'field' } %>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div class="space-y-2">
+            <%= render_label name: 'entry[start_date]', label: 'Start Date' %>
+            <%= render_input name: 'entry[start_date]',
+                           type: :date,
+                           required: true,
+                           data: { form_target: 'field' } %>
+          </div>
+          <div class="space-y-2" id="end-date-container">
+            <%= render_label name: 'entry[end_date]', label: 'End Date' %>
+            <%= render_input name: 'entry[end_date]',
+                           type: :date,
                            required: true,
                            data: { form_target: 'field' } %>
           </div>
@@ -61,6 +103,45 @@
           </div>
         </div>
         
+        <!-- Contact Information Section -->
+        <div class="mb-6 border-t pt-4 mt-4">
+          <h3 class="text-lg font-medium mb-4">Contact Information</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="space-y-2">
+              <%= render_label name: 'entry[contact_name]', label: 'Contact Name' %>
+              <%= render_input name: 'entry[contact_name]',
+                             required: true,
+                             data: { form_target: 'field' } %>
+            </div>
+            <div class="flex items-start space-x-2 mt-8">
+              <%= entry_form.check_box 'entry[no_contact]',
+                                     class: 'h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary',
+                                     data: { action: 'change->form#toggleContactFields', form_target: 'field' } %>
+              <%= entry_form.label 'entry[no_contact]', 'I don\'t have a contact for this employer',
+                                 class: 'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70' %>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4" id="contact-fields-container">
+            <div class="space-y-2">
+              <%= render_label name: 'entry[contact_email]', label: 'Contact Email' %>
+              <%= render_input name: 'entry[contact_email]',
+                             type: :email,
+                             required: false,
+                             data: { form_target: 'field' } %>
+            </div>
+            <div class="space-y-2">
+              <%= render_label name: 'entry[contact_phone]', label: 'Contact Phone Number' %>
+              <%= render_input name: 'entry[contact_phone]',
+                             required: false,
+                             data: { form_target: 'field' } %>
+            </div>
+          </div>
+          
+          <p class="text-sm text-gray-500 italic">Either contact email or phone number is required unless "I don't have a contact" is checked.</p>
+        </div>
+        
         <div class="space-y-2 mb-4">
           <%= render_label name: 'entry[description]', label: 'Job Description' %>
           <%= render_input name: 'entry[description]',
@@ -69,16 +150,8 @@
                          data: { form_target: 'field' } %>
         </div>
         
-        <div class="flex items-start space-x-2 mb-4">
-          <%= entry_form.check_box 'entry[is_current]',
-                                 class: 'h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary',
-                                 data: { action: 'change->form#toggleEndDate', form_target: 'field' } %>
-          <%= entry_form.label 'entry[is_current]', 'This is my current employer',
-                             class: 'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70' %>
-        </div>
-        
         <div class="flex justify-end">
-          <%= render_button 'Add Employment', as: :submit %>
+          <%= render_button 'Add Employment', as: :submit, name: 'commit', value: 'Add Employment' %>
         </div>
       <% end %>
     <% end %>
