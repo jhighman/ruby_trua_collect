@@ -1,0 +1,63 @@
+<div class="form-wizard-container">
+  <div class="form-wizard-header">
+    <h1 class="form-wizard-title">Review Your Information</h1>
+    <p class="form-wizard-description">Please review all the information you've provided before final submission.</p>
+  </div>
+
+  <div class="form-wizard-content">
+    <% @navigation = @form_submission.navigation %>
+    <% completed_steps = @navigation.completed_steps %>
+    
+    <% completed_steps.each do |step_id| %>
+      <% next if step_id == 'review' %>
+      <% step_values = @form_submission.step_values(step_id) %>
+      
+      <% if step_values.present? %>
+        <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+          <h2 class="text-xl font-semibold mb-4"><%= step_id.humanize %></h2>
+          
+          <div class="space-y-4">
+            <% step_values.each do |key, value| %>
+              <% next if key == 'entries' || value.blank? %>
+              <div class="grid grid-cols-3 gap-4">
+                <div class="font-medium text-gray-700"><%= key.humanize %></div>
+                <div class="col-span-2"><%= value %></div>
+              </div>
+            <% end %>
+            
+            <% if step_values['entries'].present? %>
+              <h3 class="text-lg font-medium mt-4 mb-2">Entries</h3>
+              
+              <% step_values['entries'].each_with_index do |entry, index| %>
+                <div class="bg-gray-50 p-4 rounded-md mb-4">
+                  <h4 class="font-medium mb-2">Entry <%= index + 1 %></h4>
+                  
+                  <div class="space-y-2">
+                    <% entry.each do |key, value| %>
+                      <% next if value.blank? %>
+                      <div class="grid grid-cols-3 gap-4">
+                        <div class="font-medium text-gray-700"><%= key.humanize %></div>
+                        <div class="col-span-2"><%= value %></div>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%= form_with url: submit_form_submission_path(@form_submission), method: :post, class: "mt-8" do |f| %>
+    <div class="form-wizard-footer">
+      <div>
+        <%= link_to "Back", form_submission_path(id: @form_submission.id, step_id: @navigation.previous_step('review')), class: "btn btn-secondary" %>
+      </div>
+      <div>
+        <%= f.submit "Submit", class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+</div>

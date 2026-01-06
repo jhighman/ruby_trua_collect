@@ -25,6 +25,9 @@ class FormConfig
     { id: 'signature', fields: [
       { id: 'signature', label: 'Signature', required: true, type: 'string' },
       { id: 'confirmation', label: 'Confirmation', required: true, type: 'boolean' }
+    ] },
+    { id: 'review', fields: [
+      { id: 'confirmation', label: 'I confirm that all information provided is accurate and complete', required: true, type: 'boolean' }
     ] }
   ].freeze
 

@@ -1,0 +1,48 @@
+<div class="form-wizard-container">
+  <div class="form-wizard-header">
+    <h1 class="form-wizard-title">Thank You for Your Submission</h1>
+    <p class="form-wizard-description">Your information has been successfully submitted.</p>
+  </div>
+
+  <div class="form-wizard-content">
+    <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+      <div class="flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <p class="text-green-700 font-medium">Your submission has been received and is being processed.</p>
+      </div>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">Submission Details</h2>
+      
+      <div class="grid grid-cols-3 gap-4 mb-4">
+        <div class="font-medium text-gray-700">Submission ID</div>
+        <div class="col-span-2"><%= @form_submission.id %></div>
+      </div>
+      
+      <div class="grid grid-cols-3 gap-4 mb-4">
+        <div class="font-medium text-gray-700">Date Submitted</div>
+        <div class="col-span-2"><%= Time.now.strftime("%B %d, %Y at %I:%M %p") %></div>
+      </div>
+      
+      <div class="grid grid-cols-3 gap-4">
+        <div class="font-medium text-gray-700">Collection Key</div>
+        <div class="col-span-2">Standard</div>
+      </div>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <h3 class="text-lg font-medium text-blue-800 mb-2">What happens next?</h3>
+      <p class="text-blue-700 mb-4">Your information will be reviewed by our team. You may be contacted if additional information is needed.</p>
+      <p class="text-blue-700">Please save your submission ID for future reference.</p>
+    </div>
+  </div>
+
+  <div class="form-wizard-footer mt-8">
+    <div>
+      <%= link_to "Return to Home", root_path, class: "btn btn-primary" %>
+    </div>
+  </div>
+</div>

@@ -96,6 +96,12 @@ class FormSubmissionsController < ApplicationController
       # Save the current state and redirect to the dashboard
       @navigation.save_state
       redirect_to root_path, notice: 'Your progress has been saved. You can resume later.' and return
+    elsif params[:commit] == 'Submit'
+      # Process the form submission
+      @form_submission.update(submitted_at: Time.current)
+      
+      # Redirect to the thank you page
+      redirect_to thank_you_form_submission_path(@form_submission), status: :see_other and return
     else
       @navigation_state = @navigation.navigation_state(@step_id)
       
@@ -130,8 +136,9 @@ class FormSubmissionsController < ApplicationController
     
     # Try to get completion status from cache
     completion_data = Rails.cache.fetch(cache_key, expires_in: 5.minutes) do
-      # Check if all available steps are complete
-      all_complete = @navigation.available_steps.all? { |step_id| @form_submission.step_complete?(step_id) }
+      # Check if all available steps are complete (excluding review step)
+      available_steps = @navigation.available_steps.reject { |step| step == 'review' }
+      all_complete = available_steps.all? { |step_id| @form_submission.step_complete?(step_id) }
       
       if all_complete
         { complete: true }
@@ -143,13 +150,31 @@ class FormSubmissionsController < ApplicationController
     end
     
     if completion_data[:complete]
-      # Process the completed form submission
-      # This could involve creating a Claim record or other processing
-      render :complete
+      # Redirect to the review step instead of showing the complete page
+      redirect_to form_submission_path(id: @form_submission.id, step_id: 'review')
     else
       # Redirect to the first incomplete step
       redirect_to form_submission_path(id: @form_submission.id, step_id: completion_data[:incomplete_step])
     end
+  end
+  
+  # POST /form/:id/submit
+  def submit
+    @navigation = @form_submission.navigation
+    
+    # Mark the form as submitted
+    @form_submission.update(submitted_at: Time.current)
+    
+    # Process the completed form submission
+    # This could involve creating a Claim record or other processing
+    # For now, we'll just redirect to the thank you page
+    
+    redirect_to thank_you_form_submission_path(@form_submission)
+  end
+  
+  # GET /form/:id/thank_you
+  def thank_you
+    # Just render the thank you page
   end
   
   # GET /form/:id/audit_trail

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_07_144500) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_07_150000) do
   create_table "audit_logs", force: :cascade do |t|
     t.integer "form_submission_id", null: false
     t.integer "user_id"
@@ -136,9 +136,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_07_144500) do
     t.json "oauth_tokens", default: {}, null: false
     t.json "callbacks", default: {}, null: false
     t.json "navigation_order", default: [], null: false
+    t.datetime "submitted_at"
     t.index ["last_active_at"], name: "index_form_submissions_on_last_active_at"
     t.index ["requirements_config_id"], name: "index_form_submissions_on_requirements_config_id"
     t.index ["session_id"], name: "index_form_submissions_on_session_id"
+    t.index ["submitted_at"], name: "index_form_submissions_on_submitted_at"
     t.index ["user_id"], name: "index_form_submissions_on_user_id"
   end
 

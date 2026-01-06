@@ -13,7 +13,13 @@ class NavigationService
   def available_steps
     # Cache the result for 1 hour
     Rails.cache.fetch("available_steps:#{form_submission.id}", expires_in: 1.hour) do
-      FormConfig.step_ids.select { |step_id| is_step_enabled(step_id) }
+      # Get all enabled steps except review
+      enabled_steps = FormConfig.step_ids.select { |step_id| step_id != 'review' && is_step_enabled(step_id) }
+      
+      # Add review as the last step if there are any enabled steps
+      enabled_steps << 'review' if enabled_steps.any?
+      
+      enabled_steps
     end
   end
   
@@ -36,6 +42,9 @@ class NavigationService
         requirements_config.verification_steps['education']['enabled']
       when 'professional_licenses'
         requirements_config.verification_steps['professionalLicense']['enabled']
+      when 'review'
+        # Review step is always enabled
+        true
       else
         true # Default to enabled if not specified
       end

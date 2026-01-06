@@ -5,6 +5,8 @@ Rails.application.routes.draw do
   resources :form_submissions, path: 'form', only: [:show, :update, :destroy] do
     member do
       get 'complete'
+      post 'submit'
+      get 'thank_you'
       post 'validate_step'
       get 'audit_trail'
       get 'resume'
