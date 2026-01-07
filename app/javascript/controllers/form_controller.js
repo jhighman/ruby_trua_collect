@@ -37,8 +37,21 @@ export default class extends Controller {
     
     // Initial state for no contact
     const noContactCheckbox = this.element.querySelector('input[name="entry[no_contact]"]')
-    if (noContactCheckbox && noContactCheckbox.checked) {
-      this.toggleContactFields({ target: noContactCheckbox })
+    if (noContactCheckbox) {
+      // Initialize warning message state
+      const warningElement = document.getElementById("no-contact-warning")
+      if (warningElement) {
+        if (noContactCheckbox.checked) {
+          warningElement.classList.remove("hidden")
+        } else {
+          warningElement.classList.add("hidden")
+        }
+      }
+      
+      // Initialize contact fields state
+      if (noContactCheckbox.checked) {
+        this.toggleContactFields({ target: noContactCheckbox })
+      }
     }
   }
 
@@ -428,6 +441,7 @@ export default class extends Controller {
     
     const checkbox = event.target
     const container = document.getElementById("contact-fields-container")
+    const warningElement = document.getElementById("no-contact-warning")
     
     if (!container) {
       console.error("❌ CONTACT FIELDS CONTAINER NOT FOUND")
@@ -444,6 +458,12 @@ export default class extends Controller {
       console.log("Hiding contact fields")
       container.style.display = "none"
       
+      // Show warning message
+      if (warningElement) {
+        warningElement.classList.remove("hidden")
+        console.log("Showing no-contact warning")
+      }
+      
       // Disable required validation for contact fields
       const contactFields = container.querySelectorAll("input")
       contactFields.forEach(field => {
@@ -455,6 +475,12 @@ export default class extends Controller {
       console.log("Showing contact fields")
       const original = container.dataset.originalDisplay || "grid"
       container.style.display = original
+      
+      // Hide warning message
+      if (warningElement) {
+        warningElement.classList.add("hidden")
+        console.log("Hiding no-contact warning")
+      }
       
       // Re-enable fields but don't make them required individually
       // We'll validate that at least one is filled in the server-side validation
