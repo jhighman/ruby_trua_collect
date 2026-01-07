@@ -43,11 +43,15 @@
       <%= form_with url: form_submission_path(id: @form_submission.id, step_id: @step_id), method: :patch, html: { data: { action: 'submit->form#addTimelineEntry' } }, authenticity_token: true do |entry_form| %>
         <!-- Current employer toggle moved to the top -->
         <div class="flex items-start space-x-2 mb-6 p-3 bg-gray-50 rounded-md border border-gray-200">
-          <%= entry_form.check_box 'entry[is_current]',
-                                 class: 'h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary',
-                                 data: { action: 'change->form#toggleEndDate', form_target: 'field' } %>
-          <%= entry_form.label 'entry[is_current]', 'This is my current employer',
-                             class: 'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70' %>
+          <input type="checkbox"
+                 name="entry[is_current]"
+                 id="entry_is_current"
+                 class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                 data-action="change->form#toggleEndDate"
+                 data-form-target="field">
+          <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="entry_is_current">
+            This is my current employer
+          </label>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -78,7 +82,8 @@
             <%= render_input name: 'entry[end_date]',
                            type: :date,
                            required: true,
-                           data: { form_target: 'field' } %>
+                           data: { form_target: 'field' },
+                           id: 'entry_end_date' %>
           </div>
         </div>
         
@@ -115,11 +120,15 @@
                              data: { form_target: 'field' } %>
             </div>
             <div class="flex items-start space-x-2 mt-8">
-              <%= entry_form.check_box 'entry[no_contact]',
-                                     class: 'h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary',
-                                     data: { action: 'change->form#toggleContactFields', form_target: 'field' } %>
-              <%= entry_form.label 'entry[no_contact]', 'I don\'t have a contact for this employer',
-                                 class: 'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70' %>
+              <input type="checkbox"
+                     name="entry[no_contact]"
+                     id="entry_no_contact"
+                     class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                     data-action="change->form#toggleContactFields"
+                     data-form-target="field">
+              <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="entry_no_contact">
+                I don't have a contact for this employer
+              </label>
             </div>
           </div>
           

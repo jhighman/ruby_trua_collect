@@ -11,7 +11,7 @@ export default class extends Controller {
   }
 
   connect() {
-    console.log("Form controller connected", {
+    console.log("Form controller connected successfully!", {
       stepId: this.stepIdValue,
       formId: this.formIdValue,
       element: this.element,
@@ -27,32 +27,18 @@ export default class extends Controller {
   }
   
   initializeToggles() {
-    // Initialize current employer toggle
+    console.log("Initializing toggles — using data-action attributes")
+    
+    // Initial state for current employer
     const isCurrentCheckbox = this.element.querySelector('input[name="entry[is_current]"]')
-    if (isCurrentCheckbox) {
-      const endDateContainer = document.getElementById("end-date-container")
-      if (endDateContainer && isCurrentCheckbox.checked) {
-        endDateContainer.style.display = "none"
-        const endDateField = endDateContainer.querySelector("input")
-        if (endDateField) {
-          endDateField.disabled = true
-          endDateField.required = false
-        }
-      }
+    if (isCurrentCheckbox && isCurrentCheckbox.checked) {
+      this.toggleEndDate({ target: isCurrentCheckbox })
     }
     
-    // Initialize no contact toggle
+    // Initial state for no contact
     const noContactCheckbox = this.element.querySelector('input[name="entry[no_contact]"]')
-    if (noContactCheckbox) {
-      const contactFieldsContainer = document.getElementById("contact-fields-container")
-      if (contactFieldsContainer && noContactCheckbox.checked) {
-        contactFieldsContainer.style.display = "none"
-        const contactFields = contactFieldsContainer.querySelectorAll("input")
-        contactFields.forEach(field => {
-          field.disabled = true
-          field.required = false
-        })
-      }
+    if (noContactCheckbox && noContactCheckbox.checked) {
+      this.toggleContactFields({ target: noContactCheckbox })
     }
   }
 
@@ -391,52 +377,92 @@ export default class extends Controller {
   }
 
   toggleEndDate(event) {
-    const isCurrentCheckbox = event.target
-    const endDateContainer = document.getElementById("end-date-container")
+    console.log("🔥🔥 TOGGLED CURRENT EMPLOYER!", {
+      checked: event.target.checked,
+      checkbox: event.target,
+      container: document.getElementById("end-date-container")
+    })
+
+    const checkbox = event.target
+    const container = document.getElementById("end-date-container")
     
-    if (endDateContainer) {
-      if (isCurrentCheckbox.checked) {
-        endDateContainer.style.display = "none"
-        const endDateField = endDateContainer.querySelector("input")
-        if (endDateField) {
-          endDateField.disabled = true
-          endDateField.required = false
-        }
-      } else {
-        endDateContainer.style.display = "block"
-        const endDateField = endDateContainer.querySelector("input")
-        if (endDateField) {
-          endDateField.disabled = false
-          endDateField.required = true
-        }
+    if (!container) {
+      console.error("❌ END DATE CONTAINER NOT FOUND")
+      return
+    }
+
+    const field = container.querySelector("input")
+    
+    if (checkbox.checked) {
+      console.log("Hiding end date")
+      if (!container.dataset.originalDisplay) {
+        container.dataset.originalDisplay = window.getComputedStyle(container).display
+      }
+      container.style.display = "none"
+      
+      if (field) {
+        field.disabled = true
+        field.required = false
+        field.value = ""
+        console.log("End date field disabled and cleared")
+      }
+    } else {
+      console.log("Showing end date")
+      const original = container.dataset.originalDisplay || "block"
+      container.style.display = original
+      
+      if (field) {
+        field.disabled = false
+        field.required = true
+        console.log("End date field enabled")
       }
     }
   }
   
   toggleContactFields(event) {
-    const noContactCheckbox = event.target
-    const contactFieldsContainer = document.getElementById("contact-fields-container")
+    console.log("🔥🔥 TOGGLED NO CONTACT!", {
+      checked: event.target.checked,
+      checkbox: event.target,
+      container: document.getElementById("contact-fields-container")
+    })
     
-    if (contactFieldsContainer) {
-      if (noContactCheckbox.checked) {
-        contactFieldsContainer.style.display = "none"
-        
-        // Disable required validation for contact fields
-        const contactFields = contactFieldsContainer.querySelectorAll("input")
-        contactFields.forEach(field => {
-          field.disabled = true
-          field.required = false
-        })
-      } else {
-        contactFieldsContainer.style.display = "grid"
-        
-        // Re-enable fields but don't make them required individually
-        // We'll validate that at least one is filled in the server-side validation
-        const contactFields = contactFieldsContainer.querySelectorAll("input")
-        contactFields.forEach(field => {
-          field.disabled = false
-        })
-      }
+    const checkbox = event.target
+    const container = document.getElementById("contact-fields-container")
+    
+    if (!container) {
+      console.error("❌ CONTACT FIELDS CONTAINER NOT FOUND")
+      return
+    }
+    
+    // Save original display only once
+    if (!container.dataset.originalDisplay) {
+      container.dataset.originalDisplay = window.getComputedStyle(container).display
+      console.log("Saved original display:", container.dataset.originalDisplay)
+    }
+    
+    if (checkbox.checked) {
+      console.log("Hiding contact fields")
+      container.style.display = "none"
+      
+      // Disable required validation for contact fields
+      const contactFields = container.querySelectorAll("input")
+      contactFields.forEach(field => {
+        field.disabled = true
+        field.required = false
+        console.log("Disabled field:", field.name)
+      })
+    } else {
+      console.log("Showing contact fields")
+      const original = container.dataset.originalDisplay || "grid"
+      container.style.display = original
+      
+      // Re-enable fields but don't make them required individually
+      // We'll validate that at least one is filled in the server-side validation
+      const contactFields = container.querySelectorAll("input")
+      contactFields.forEach(field => {
+        field.disabled = false
+        console.log("Enabled field:", field.name)
+      })
     }
   }
 }

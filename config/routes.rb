@@ -22,6 +22,13 @@ Rails.application.routes.draw do
   # Language switching
   get 'switch_language', to: 'application#switch_language', as: :switch_language
   
+  # Form Submissions API
+  resources :form_submissions_api, only: [] do
+    member do
+      get :state
+    end
+  end
+  
   # Root path
   root to: 'form_submissions#show'
 end
